@@ -3,6 +3,9 @@ package com.ayaan.mongofsterminal.presentation
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -28,6 +31,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.ayaan.mongofsterminal.presentation.components.DirectoryEntryLine
+import com.ayaan.mongofsterminal.presentation.components.DisplayImageFromBase64
 import com.ayaan.mongofsterminal.presentation.components.TerminalOutputLine
 import com.ayaan.mongofsterminal.presentation.components.TerminalPromptLine
 
@@ -38,6 +43,7 @@ fun TerminalScreen(viewModel: TerminalViewModel = hiltViewModel()) {
     val commandHistory = viewModel.commandHistory
     val isLoading by viewModel.isLoading
     val workingDir by viewModel.workingDir
+    val currentPathDisplay by viewModel.currentPathDisplay
     val username by viewModel.username
     val hostname by viewModel.hostname
     val suggestions = viewModel.suggestions
@@ -64,11 +70,42 @@ fun TerminalScreen(viewModel: TerminalViewModel = hiltViewModel()) {
                                 username = username,
                                 hostname = hostname,
                                 cwd = entry.cwd,
+                                pathDisplay = currentPathDisplay, // Use user-friendly path
                                 command = entry.command
                             )
                         }
                         is TerminalEntry.Output -> {
                             TerminalOutputLine(entry.text, entry.type)
+                        }
+                        is TerminalEntry.Listing -> {
+                            // Grid layout for directory listing
+                            LazyVerticalGrid(
+                                columns = GridCells.Adaptive(minSize = 80.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(((entry.items.size / 4 + 1) * 64).dp)
+                                    .padding(vertical = 8.dp),
+                                contentPadding = PaddingValues(4.dp)
+                            ) {
+                                items(entry.items) { node ->
+                                    DirectoryEntryLine(node = node)
+                                }
+                            }
+                        }
+                        is TerminalEntry.TextOutput -> {
+                            Text(
+                                text = entry.text,
+                                color = Color.White,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp)
+                            )
+                        }
+                        is TerminalEntry.ImageOutput -> {
+                            DisplayImageFromBase64(
+                                base64Data = entry.base64Data,
+                                modifier = Modifier.padding(vertical = 8.dp)
+                            )
                         }
                     }
                 }
@@ -77,6 +114,7 @@ fun TerminalScreen(viewModel: TerminalViewModel = hiltViewModel()) {
                         username = username,
                         hostname = hostname,
                         cwd = workingDir,
+                        pathDisplay = currentPathDisplay,
                         command = null
                     )
                     TextField(
