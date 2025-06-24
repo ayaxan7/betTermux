@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ayaan.mongofsterminal.autocomplete.AutocompleteManager
 import com.ayaan.mongofsterminal.data.api.FileSystemApi
 import com.ayaan.mongofsterminal.data.api.GeminiApi
 import com.ayaan.mongofsterminal.data.api.GeminiContent
@@ -25,38 +26,17 @@ class TerminalViewModel @Inject constructor(
     val commandInput = mutableStateOf("")
     val commandHistory = mutableStateListOf<TerminalEntry>()
     val isLoading = mutableStateOf(false)
-    val suggestions = mutableStateListOf<String>()
     val workingDir = mutableStateOf("root")
     val username = mutableStateOf("ayaan")
-    val hostname = mutableStateOf("macbook")
+    val hostname = mutableStateOf(" )")
     var historyIndex = -1
-    private var geminiJob: Job? = null
-    var geminiApiKey: String = ""
+    // AutocompleteManager instance
+    val autocompleteManager = AutocompleteManager(geminiApi, viewModelScope, "") // Set API key as needed
+    val suggestions get() = autocompleteManager.suggestions
 
     fun onCommandInputChange(input: String) {
         commandInput.value = input
-        geminiJob?.cancel()
-        if (input.isBlank() || geminiApiKey.isBlank()) {
-            suggestions.clear()
-            return
-        }
-        geminiJob = viewModelScope.launch {
-            try {
-                val prompt = "Suggest the next possible command or argument for a shell terminal. Context: $input"
-                val response = geminiApi.getSuggestions(
-                    GeminiRequest(
-                        contents = listOf(
-                            GeminiContent(parts = listOf(GeminiPart(text = prompt)))
-                        )
-                    )
-                )
-                val suggestionList = response.candidates?.mapNotNull { it.content?.parts?.firstOrNull()?.text } ?: emptyList()
-                suggestions.clear()
-                suggestions.addAll(suggestionList)
-            } catch (e: Exception) {
-                suggestions.clear()
-            }
-        }
+        autocompleteManager.fetchSuggestions(input)
     }
 
     fun onCommandSubmit() {

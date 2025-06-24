@@ -24,9 +24,12 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.ayaan.mongofsterminal.presentation.components.TerminalOutputLine
+import com.ayaan.mongofsterminal.presentation.components.TerminalPromptLine
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -149,31 +152,4 @@ fun TerminalScreen(viewModel: TerminalViewModel = hiltViewModel()) {
             }
         }
     }
-}
-
-@Composable
-fun TerminalPromptLine(username: String, hostname: String, cwd: String, command: String?) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(
-            text = "$username@$hostname",
-            color = Color(0xFF80CBC4),
-            style = TextStyle(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
-        )
-        Text(text = " $cwd ", color = Color(0xFFB2DFDB))
-        Text(text = "$ ", color = Color.White)
-        if (command != null) {
-            Text(text = command, color = Color.Green)
-        }
-    }
-}
-
-@Composable
-fun TerminalOutputLine(text: String, type: TerminalOutputType) {
-    val color = when (type) {
-        TerminalOutputType.Normal -> Color.White
-        TerminalOutputType.Error -> Color.Red
-        TerminalOutputType.Directory -> Color(0xFF80CBC4)
-        TerminalOutputType.File -> Color(0xFFB2DFDB)
-    }
-    Text(text = text, color = color)
 }

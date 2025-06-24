@@ -67,7 +67,7 @@ dependencies {
     ksp(libs.google.hilt.compiler)
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.gson)
-
+    implementation(libs.okhttp)
     // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
