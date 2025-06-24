@@ -20,7 +20,7 @@ class TerminalViewModel @Inject constructor(
     val commandHistory = mutableStateListOf<TerminalEntry>()
     val isLoading = mutableStateOf(false)
     val suggestions = mutableStateListOf<String>()
-    val workingDir = mutableStateOf("~")
+    val workingDir = mutableStateOf("root")
     val username = mutableStateOf("ayaan")
     val hostname = mutableStateOf("macbook")
     var historyIndex = -1
@@ -157,6 +157,29 @@ class TerminalViewModel @Inject constructor(
                     } else {
                         TerminalEntry.Output(res.error ?: "Not found", TerminalOutputType.Error)
                     }
+                }
+                "pwd" -> {
+                    val req = FileSystemRequest(
+                        action = "getNodePathString",
+                        nodeId = workingDir.value
+                    )
+                    val res = fileSystemApi.performAction(req)
+                    Log.d("TerminalVM", "pwd response: $res")
+                    if (res.success) {
+                        TerminalEntry.Output(res.data?.toString() ?: "", TerminalOutputType.Normal)
+                    } else {
+                        TerminalEntry.Output(res.error ?: "Failed to get path", TerminalOutputType.Error)
+                    }
+                }
+                "history" -> {
+                    val history = commandHistory.filterIsInstance<TerminalEntry.Prompt>()
+                        .mapIndexed { idx, entry -> "  ${idx + 1}: ${entry.command}" }
+                        .joinToString("\n")
+                    TerminalEntry.Output(history, TerminalOutputType.Normal)
+                }
+                "clear" -> {
+                    commandHistory.clear()
+                    TerminalEntry.Output("", TerminalOutputType.Normal)
                 }
                 // Add more commands as needed
                 else -> TerminalEntry.Output("Unknown command: ${tokens[0]}", TerminalOutputType.Error)
