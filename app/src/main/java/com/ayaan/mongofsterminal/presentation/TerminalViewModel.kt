@@ -1,5 +1,6 @@
 package com.ayaan.mongofsterminal.presentation
 
+import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -53,6 +54,7 @@ class TerminalViewModel @Inject constructor(
                         parentId = workingDir.value
                     )
                     val res = fileSystemApi.performAction(req)
+                    Log.d("TerminalVM", "ls response: $res")
                     if (res.success) {
                         val list = (res.data as? List<*>)?.joinToString("  ") ?: res.data?.toString() ?: ""
                         TerminalEntry.Output(list, TerminalOutputType.Normal)
@@ -68,6 +70,7 @@ class TerminalViewModel @Inject constructor(
                         targetPath = target
                     )
                     val res = fileSystemApi.performAction(req)
+                    Log.d("TerminalVM", "cd response: $res")
                     if (res.success && res.data is String) {
                         workingDir.value = res.data
                         TerminalEntry.Output("", TerminalOutputType.Normal)
@@ -84,10 +87,12 @@ class TerminalViewModel @Inject constructor(
                         targetPath = file
                     )
                     val res = fileSystemApi.performAction(req)
+                    Log.d("TerminalVM", "cat resolve response: $res")
                     if (res.success && res.data is String) {
                         val fileId = res.data
                         val getNodeReq = FileSystemRequest(action = "getNode", id = fileId)
                         val nodeRes = fileSystemApi.performAction(getNodeReq)
+                        Log.d("TerminalVM", "cat getNode response: $nodeRes")
                         if (nodeRes.success) {
                             TerminalEntry.Output(nodeRes.data?.toString() ?: "", TerminalOutputType.Normal)
                         } else {
@@ -106,6 +111,7 @@ class TerminalViewModel @Inject constructor(
                         parentId = workingDir.value
                     )
                     val res = fileSystemApi.performAction(req)
+                    Log.d("TerminalVM", "mkdir response: $res")
                     if (res.success) {
                         TerminalEntry.Output("Directory created", TerminalOutputType.Normal)
                     } else {
@@ -121,6 +127,7 @@ class TerminalViewModel @Inject constructor(
                         parentId = workingDir.value
                     )
                     val res = fileSystemApi.performAction(req)
+                    Log.d("TerminalVM", "touch response: $res")
                     if (res.success) {
                         TerminalEntry.Output("File created", TerminalOutputType.Normal)
                     } else {
@@ -136,10 +143,12 @@ class TerminalViewModel @Inject constructor(
                         targetPath = target
                     )
                     val res = fileSystemApi.performAction(req)
+                    Log.d("TerminalVM", "rm resolve response: $res")
                     if (res.success && res.data is String) {
                         val nodeId = res.data
                         val delReq = FileSystemRequest(action = "deleteNodeAction", nodeId = nodeId)
                         val delRes = fileSystemApi.performAction(delReq)
+                        Log.d("TerminalVM", "rm delete response: $delRes")
                         if (delRes.success) {
                             TerminalEntry.Output("Deleted", TerminalOutputType.Normal)
                         } else {
@@ -153,6 +162,7 @@ class TerminalViewModel @Inject constructor(
                 else -> TerminalEntry.Output("Unknown command: ${tokens[0]}", TerminalOutputType.Error)
             }
         } catch (e: Exception) {
+            Log.e("TerminalVM", "Exception: ${e.message}", e)
             TerminalEntry.Output(e.message ?: "Error", TerminalOutputType.Error)
         }
     }

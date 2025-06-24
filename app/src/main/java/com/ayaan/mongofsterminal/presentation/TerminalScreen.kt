@@ -47,95 +47,104 @@ fun TerminalScreen(viewModel: TerminalViewModel = hiltViewModel()) {
             .fillMaxSize()
             .background(Color.Black, shape = MaterialTheme.shapes.medium)
     ) {
-        Column(
-            modifier = Modifier
-                .padding(12.dp)
-                .verticalScroll(scrollState)
-                .fillMaxSize()
-        ) {
-            commandHistory.forEach { entry ->
-                when (entry) {
-                    is TerminalEntry.Prompt -> {
-                        TerminalPromptLine(
-                            username = username,
-                            hostname = hostname,
-                            cwd = entry.cwd,
-                            command = entry.command
-                        )
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .padding(12.dp)
+                    .verticalScroll(scrollState)
+                    .fillMaxSize()
+            ) {
+                commandHistory.forEach { entry ->
+                    when (entry) {
+                        is TerminalEntry.Prompt -> {
+                            TerminalPromptLine(
+                                username = username,
+                                hostname = hostname,
+                                cwd = entry.cwd,
+                                command = entry.command
+                            )
+                        }
+                        is TerminalEntry.Output -> {
+                            TerminalOutputLine(entry.text, entry.type)
+                        }
                     }
-                    is TerminalEntry.Output -> {
-                        TerminalOutputLine(entry.text, entry.type)
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    TerminalPromptLine(
+                        username = username,
+                        hostname = hostname,
+                        cwd = workingDir,
+                        command = null
+                    )
+                    TextField(
+                        value = commandInput,
+                        onValueChange = { viewModel.onCommandInputChange(it) },
+                        modifier = Modifier
+                            .weight(1f)
+                            .onKeyEvent {
+                                when (it.nativeKeyEvent.keyCode) {
+                                    android.view.KeyEvent.KEYCODE_ENTER -> {
+                                        viewModel.onCommandSubmit()
+                                        true
+                                    }
+                                    android.view.KeyEvent.KEYCODE_DPAD_UP -> {
+                                        viewModel.onHistoryUp()
+                                        true
+                                    }
+                                    android.view.KeyEvent.KEYCODE_DPAD_DOWN -> {
+                                        viewModel.onHistoryDown()
+                                        true
+                                    }
+                                    else -> false
+                                }
+                            },
+                        colors = TextFieldDefaults.colors(
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            cursorColor = Color.White,
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent
+                        ),
+                        textStyle = TextStyle(color = Color.Green),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(
+                            onDone = {
+                                viewModel.onCommandSubmit()
+                                keyboardController?.hide()
+                            }
+                        )
+                    )
+                }
+                // Autocomplete suggestions (Gemini)
+                if (suggestions.isNotEmpty()) {
+                    Column(
+                        modifier = Modifier
+                            .background(Color(0xFF23272E), shape = MaterialTheme.shapes.small)
+                            .padding(4.dp)
+                    ) {
+                        suggestions.forEach { suggestion ->
+                            Text(
+                                text = suggestion,
+                                color = Color(0xFF80CBC4),
+                                modifier = Modifier.padding(2.dp)
+                            )
+                        }
                     }
                 }
             }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                TerminalPromptLine(
-                    username = username,
-                    hostname = hostname,
-                    cwd = workingDir,
-                    command = null
-                )
-                TextField(
-                    value = commandInput,
-                    onValueChange = { viewModel.onCommandInputChange(it) },
+            if (isLoading) {
+                Box(
                     modifier = Modifier
-                        .weight(1f)
-                        .onKeyEvent {
-                            when (it.nativeKeyEvent.keyCode) {
-                                android.view.KeyEvent.KEYCODE_ENTER -> {
-                                    viewModel.onCommandSubmit()
-                                    true
-                                }
-                                android.view.KeyEvent.KEYCODE_DPAD_UP -> {
-                                    viewModel.onHistoryUp()
-                                    true
-                                }
-                                android.view.KeyEvent.KEYCODE_DPAD_DOWN -> {
-                                    viewModel.onHistoryDown()
-                                    true
-                                }
-                                else -> false
-                            }
-                        },
-                    colors = TextFieldDefaults.colors(
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        cursorColor = Color.White,
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent
-                    ),
-                    textStyle = TextStyle(color = Color.Green),
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
-                    keyboardActions = KeyboardActions(
-                        onDone = {
-                            viewModel.onCommandSubmit()
-                            keyboardController?.hide()
-                        }
-                    )
-                )
-                if (isLoading) {
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.5f)),
+                    contentAlignment = Alignment.Center
+                ) {
                     CircularProgressIndicator(
                         color = Color(0xFF80CBC4),
-                        modifier = Modifier.size(18.dp).padding(start = 8.dp),
-                        strokeWidth = 2.dp
+                        modifier = Modifier.size(48.dp),
+                        strokeWidth = 4.dp
                     )
-                }
-            }
-            // Autocomplete suggestions (Gemini)
-            if (suggestions.isNotEmpty()) {
-                Column(
-                    modifier = Modifier
-                        .background(Color(0xFF23272E), shape = MaterialTheme.shapes.small)
-                        .padding(4.dp)
-                ) {
-                    suggestions.forEach { suggestion ->
-                        Text(
-                            text = suggestion,
-                            color = Color(0xFF80CBC4),
-                            modifier = Modifier.padding(2.dp)
-                        )
-                    }
                 }
             }
         }
