@@ -6,15 +6,21 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ayaan.mongofsterminal.data.api.FileSystemApi
+import com.ayaan.mongofsterminal.data.api.GeminiApi
+import com.ayaan.mongofsterminal.data.api.GeminiContent
+import com.ayaan.mongofsterminal.data.api.GeminiPart
+import com.ayaan.mongofsterminal.data.api.GeminiRequest
 import com.ayaan.mongofsterminal.data.model.FileSystemRequest
 import com.ayaan.mongofsterminal.data.model.FileSystemResponse
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class TerminalViewModel @Inject constructor(
-    private val fileSystemApi: FileSystemApi
+    private val fileSystemApi: FileSystemApi,
+    private val geminiApi: GeminiApi
 ) : ViewModel() {
     val commandInput = mutableStateOf("")
     val commandHistory = mutableStateListOf<TerminalEntry>()
@@ -24,10 +30,33 @@ class TerminalViewModel @Inject constructor(
     val username = mutableStateOf("ayaan")
     val hostname = mutableStateOf("macbook")
     var historyIndex = -1
+    private var geminiJob: Job? = null
+    var geminiApiKey: String = ""
 
     fun onCommandInputChange(input: String) {
         commandInput.value = input
-        // TODO: Trigger Gemini autocomplete here
+        geminiJob?.cancel()
+        if (input.isBlank() || geminiApiKey.isBlank()) {
+            suggestions.clear()
+            return
+        }
+        geminiJob = viewModelScope.launch {
+            try {
+                val prompt = "Suggest the next possible command or argument for a shell terminal. Context: $input"
+                val response = geminiApi.getSuggestions(
+                    GeminiRequest(
+                        contents = listOf(
+                            GeminiContent(parts = listOf(GeminiPart(text = prompt)))
+                        )
+                    )
+                )
+                val suggestionList = response.candidates?.mapNotNull { it.content?.parts?.firstOrNull()?.text } ?: emptyList()
+                suggestions.clear()
+                suggestions.addAll(suggestionList)
+            } catch (e: Exception) {
+                suggestions.clear()
+            }
+        }
     }
 
     fun onCommandSubmit() {
