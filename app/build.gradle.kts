@@ -1,3 +1,4 @@
+import java.util.Properties
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -6,6 +7,13 @@ plugins {
     id("com.google.devtools.ksp")
     id("kotlin-parcelize")
 }
+val localPropertiesFile = rootProject.file("local.properties")
+val localProperties = Properties().apply {
+    if (localPropertiesFile.exists()) {
+        localPropertiesFile.inputStream().use { load(it) }
+    }
+}
+val geminiApiKey = localProperties.getProperty("GEMINI_API_KEY") ?: "\"MISSING_API_KEY\""
 
 android {
     namespace = "com.ayaan.mongofsterminal"
@@ -17,7 +25,7 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
-
+        buildConfigField("String", "GEMINI_API_KEY", "\"$geminiApiKey\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -39,6 +47,10 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig=true
+    }
+    composeOptions{
+        kotlinCompilerExtensionVersion = libs.versions.kotlin.get()
     }
 }
 
