@@ -1,4 +1,4 @@
-package com.ayaan.mongofsterminal.presentation.components
+package com.ayaan.mongofsterminal.presentation.terminalscreen.components
 
 import android.graphics.BitmapFactory
 import android.util.Base64

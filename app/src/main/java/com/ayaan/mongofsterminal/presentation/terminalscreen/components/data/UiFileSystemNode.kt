@@ -1,4 +1,4 @@
-package com.ayaan.mongofsterminal.presentation
+package com.ayaan.mongofsterminal.presentation.terminalscreen.components.data
 
 import com.google.gson.annotations.SerializedName
 

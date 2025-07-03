@@ -1,4 +1,4 @@
-package com.ayaan.mongofsterminal.presentation.components
+package com.ayaan.mongofsterminal.presentation.terminalscreen.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -18,7 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.ayaan.mongofsterminal.presentation.UiFileSystemNode
+import com.ayaan.mongofsterminal.presentation.terminalscreen.components.data.UiFileSystemNode
 
 @Composable
 fun DirectoryEntryIcon(node: UiFileSystemNode, modifier: Modifier = Modifier) {

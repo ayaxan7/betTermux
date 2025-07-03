@@ -1,4 +1,4 @@
-package com.ayaan.mongofsterminal.presentation
+package com.ayaan.mongofsterminal.presentation.terminalscreen
 
 import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
@@ -8,17 +8,14 @@ import androidx.lifecycle.viewModelScope
 import com.ayaan.mongofsterminal.autocomplete.AutocompleteManager
 import com.ayaan.mongofsterminal.data.api.FileSystemApi
 import com.ayaan.mongofsterminal.data.api.GeminiApi
-import com.ayaan.mongofsterminal.data.api.GeminiContent
-import com.ayaan.mongofsterminal.data.api.GeminiPart
-import com.ayaan.mongofsterminal.data.api.GeminiRequest
 import com.ayaan.mongofsterminal.data.model.FileSystemRequest
-import com.ayaan.mongofsterminal.data.model.FileSystemResponse
+import com.ayaan.mongofsterminal.presentation.terminalscreen.components.data.UiFileSystemNode
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.collections.get
 
 @HiltViewModel
 class TerminalViewModel @Inject constructor(

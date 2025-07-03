@@ -1,7 +1,7 @@
-package com.ayaan.mongofsterminal.presentation
+package com.ayaan.mongofsterminal.presentation.terminalscreen
 
+import android.view.KeyEvent
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -21,24 +21,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.onKeyEvent
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.ayaan.mongofsterminal.presentation.components.DirectoryEntryLine
-import com.ayaan.mongofsterminal.presentation.components.DisplayImageFromBase64
-import com.ayaan.mongofsterminal.presentation.components.TerminalOutputLine
-import com.ayaan.mongofsterminal.presentation.components.TerminalPromptLine
+import androidx.navigation.NavController
+import com.ayaan.mongofsterminal.presentation.terminalscreen.components.DirectoryEntryLine
+import com.ayaan.mongofsterminal.presentation.terminalscreen.components.DisplayImageFromBase64
+import com.ayaan.mongofsterminal.presentation.terminalscreen.components.TerminalOutputLine
+import com.ayaan.mongofsterminal.presentation.terminalscreen.components.TerminalPromptLine
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun TerminalScreen(viewModel: TerminalViewModel = hiltViewModel()) {
+fun TerminalScreen(navController: NavController, viewModel: TerminalViewModel = hiltViewModel()) {
     val commandInput by viewModel.commandInput
     val commandHistory = viewModel.commandHistory
     val isLoading by viewModel.isLoading
@@ -124,15 +122,15 @@ fun TerminalScreen(viewModel: TerminalViewModel = hiltViewModel()) {
                             .weight(1f)
                             .onKeyEvent {
                                 when (it.nativeKeyEvent.keyCode) {
-                                    android.view.KeyEvent.KEYCODE_ENTER -> {
+                                    KeyEvent.KEYCODE_ENTER -> {
                                         viewModel.onCommandSubmit()
                                         true
                                     }
-                                    android.view.KeyEvent.KEYCODE_DPAD_UP -> {
+                                    KeyEvent.KEYCODE_DPAD_UP -> {
                                         viewModel.onHistoryUp()
                                         true
                                     }
-                                    android.view.KeyEvent.KEYCODE_DPAD_DOWN -> {
+                                    KeyEvent.KEYCODE_DPAD_DOWN -> {
                                         viewModel.onHistoryDown()
                                         true
                                     }
