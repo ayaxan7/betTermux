@@ -53,11 +53,6 @@ cd bettermux
     - **terminalscreen/**: Terminal UI and functionality
     - **fingerPrintScreen/**: Biometric authentication
 
-## License
-
-[Your license here]
-
-## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
