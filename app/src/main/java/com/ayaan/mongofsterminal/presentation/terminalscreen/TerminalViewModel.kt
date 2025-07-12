@@ -24,6 +24,8 @@ class TerminalViewModel @Inject constructor(
 ) : ViewModel() {
     val commandInput = mutableStateOf("")
     val commandHistory = mutableStateListOf<TerminalEntry>()
+    // List to store command history as strings for autocomplete context
+    private val commandHistoryStrings = mutableListOf<String>()
     val isLoading = mutableStateOf(false)
     val workingDir = mutableStateOf("root")
     val currentPathDisplay = mutableStateOf("~")
@@ -37,13 +39,15 @@ class TerminalViewModel @Inject constructor(
     fun onCommandInputChange(input: String) {
         commandInput.value = input
         Log.d("GeminiIntegration", "Fetching Gemini suggestions for input: $input")
-        autocompleteManager.fetchSuggestions(input)
+        // Pass the command history to the fetchSuggestions function
+        autocompleteManager.fetchSuggestions(input, commandHistoryStrings)
     }
 
     fun onCommandSubmit() {
         val command = commandInput.value.trim()
         if (command.isEmpty()) return
         commandHistory.add(TerminalEntry.Prompt(command, workingDir.value))
+        commandHistoryStrings.add(command) // Add to history strings for autocomplete
         commandInput.value = ""
         isLoading.value = true
         viewModelScope.launch {

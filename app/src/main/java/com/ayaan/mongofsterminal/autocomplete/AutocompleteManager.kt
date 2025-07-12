@@ -44,6 +44,8 @@ class AutocompleteManager(
             geminiJob = launch {
                 try {
                     Log.d("GeminiIntegration", "Making API call for: $input")
+                    Log.d("GeminiIntegration", "History: $history")
+                    Log.d("GeminiIntegration", "Prompt: $prompt")
                     val response = geminiApi.getSuggestions(
                         GeminiRequest(
                             contents = listOf(
