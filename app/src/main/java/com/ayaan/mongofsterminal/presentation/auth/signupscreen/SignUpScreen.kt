@@ -77,6 +77,9 @@ fun SignUpScreen(
             currentText = index
             delay(1500)
             index++
+            if(index==texts.size){
+                index=0
+            }
         }
     }
 

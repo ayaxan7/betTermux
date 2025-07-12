@@ -34,8 +34,25 @@ import com.ayaan.mongofsterminal.presentation.terminalscreen.components.DisplayI
 import com.ayaan.mongofsterminal.presentation.terminalscreen.components.TerminalOutputLine
 import com.ayaan.mongofsterminal.presentation.terminalscreen.components.TerminalPromptLine
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun TerminalScreen(navController: NavController, viewModel: TerminalViewModel = hiltViewModel()) {
+fun TerminalScreen(
+    navController: NavController,
+    viewModel: TerminalViewModel = hiltViewModel()
+) {
+    // Observe the logout state
+    val isLoggedOut by viewModel.isLoggedOut
+
+    // Navigate to sign-in screen when user logs out
+    LaunchedEffect(isLoggedOut) {
+        if (isLoggedOut) {
+            navController.navigate("signin_screen") {
+                // Clear the back stack so user can't navigate back to terminal after logout
+                popUpTo("terminal_screen") { inclusive = true }
+            }
+        }
+    }
+
     val commandInput by viewModel.commandInput
     val commandHistory = viewModel.commandHistory
     val isLoading by viewModel.isLoading

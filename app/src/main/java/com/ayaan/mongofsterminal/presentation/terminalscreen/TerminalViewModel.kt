@@ -10,6 +10,7 @@ import com.ayaan.mongofsterminal.data.api.FileSystemApi
 import com.ayaan.mongofsterminal.data.api.GeminiApi
 import com.ayaan.mongofsterminal.data.model.FileSystemRequest
 import com.ayaan.mongofsterminal.presentation.terminalscreen.components.data.UiFileSystemNode
+import com.google.firebase.auth.FirebaseAuth
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,7 +20,8 @@ import kotlin.collections.get
 @HiltViewModel
 class TerminalViewModel @Inject constructor(
     private val fileSystemApi: FileSystemApi,
-    geminiApi: GeminiApi
+    geminiApi: GeminiApi,
+    private val firebaseAuth: FirebaseAuth
 ) : ViewModel() {
     val commandInput = mutableStateOf("")
     val commandHistory = mutableStateListOf<TerminalEntry>()
@@ -31,6 +33,8 @@ class TerminalViewModel @Inject constructor(
     val username = mutableStateOf("ayaan")
     val hostname = mutableStateOf(" )")
     var historyIndex = -1
+    // State to track if user has logged out
+    val isLoggedOut = mutableStateOf(false)
     // AutocompleteManager instance
     val autocompleteManager = AutocompleteManager(geminiApi, viewModelScope) // Set API key as needed
     val suggestions get() = autocompleteManager.suggestions
@@ -108,6 +112,7 @@ class TerminalViewModel @Inject constructor(
                         TerminalEntry.Output(res.error ?: "Unknown error", TerminalOutputType.Error)
                     }
                 }
+
                 "echo" -> {
                     val commandString = tokens.joinToString(" ")
                     val redirectOp = if (commandString.contains(">>")) ">>" else if (commandString.contains(">")) ">" else null
@@ -425,6 +430,16 @@ class TerminalViewModel @Inject constructor(
                     commandHistory.clear()
                     TerminalEntry.Output("", TerminalOutputType.Normal)
                 }
+
+                "logout" -> {
+                    // Sign out from Firebase Auth
+                    firebaseAuth.signOut()
+                    // Update the logged out state
+                    isLoggedOut.value = true
+                    // Return a message indicating successful logout
+                    TerminalEntry.Output("Logging out...", TerminalOutputType.Normal)
+                }
+
                 // Add more commands as needed
                 else -> TerminalEntry.Output("Unknown command: ${tokens[0]}", TerminalOutputType.Error)
             }
