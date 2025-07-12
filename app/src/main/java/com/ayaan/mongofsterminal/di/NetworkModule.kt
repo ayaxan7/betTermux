@@ -2,6 +2,8 @@ package com.ayaan.mongofsterminal.di
 
 import com.ayaan.mongofsterminal.data.api.FileSystemApi
 import com.ayaan.mongofsterminal.data.api.GeminiApi
+import com.ayaan.mongofsterminal.data.repository.FileSystemRepository
+import com.google.firebase.auth.FirebaseAuth
 import com.google.gson.GsonBuilder
 import dagger.Module
 import dagger.Provides
@@ -31,6 +33,15 @@ object NetworkModule {
     @Singleton
     fun provideFileSystemApi(@Named("FileSystem") retrofit: Retrofit): FileSystemApi {
         return retrofit.create(FileSystemApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFileSystemRepository(
+        fileSystemApi: FileSystemApi,
+        firebaseAuth: FirebaseAuth
+    ): FileSystemRepository {
+        return FileSystemRepository(fileSystemApi, firebaseAuth)
     }
 
     @Provides

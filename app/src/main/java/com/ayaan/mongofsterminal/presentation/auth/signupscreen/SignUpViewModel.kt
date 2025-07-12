@@ -3,6 +3,7 @@ package com.ayaan.mongofsterminal.presentation.auth.signupscreen
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ayaan.mongofsterminal.data.repository.FileSystemRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
@@ -14,7 +15,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SignUpViewModel @Inject constructor(
-    private val firebaseAuth: FirebaseAuth
+    private val firebaseAuth: FirebaseAuth,
+    private val fileSystemRepository: FileSystemRepository
 ) : ViewModel() {
 
     // UI state
@@ -46,7 +48,7 @@ class SignUpViewModel @Inject constructor(
     private fun validateInputs(): Boolean {
         when {
             email.value.isBlank() || password.value.isBlank() ||
-            confirmPassword.value.isBlank() || username.value.isBlank() -> {
+                    confirmPassword.value.isBlank() || username.value.isBlank() -> {
                 errorMessage.value = "All fields are required"
                 return false
             }
@@ -96,19 +98,33 @@ class SignUpViewModel @Inject constructor(
 
                 authResult.user?.updateProfile(profileUpdates)?.await()
 
+                // Initialize file system for the new user
+                authResult.user?.uid?.let { uid ->
+                    val fsResult = fileSystemRepository.initializeFileSystem(uid)
+                    if (!fsResult.success) {
+                        // Log error but don't block user from proceeding
+                        println("Failed to initialize filesystem: ${fsResult.error}")
+                    }
+                }
+
                 // Success
                 isLoading.value = false
                 onSuccess()
-
-            } catch (e: FirebaseAuthWeakPasswordException) {
-                isLoading.value = false
-                errorMessage.value = "Password is too weak: ${e.reason}"
-            } catch (e: FirebaseAuthUserCollisionException) {
-                isLoading.value = false
-                errorMessage.value = "An account already exists with this email"
             } catch (e: Exception) {
                 isLoading.value = false
-                errorMessage.value = e.message ?: "Registration failed. Please try again."
+                when (e) {
+                    is FirebaseAuthUserCollisionException -> {
+                        errorMessage.value = "This email is already registered"
+                    }
+
+                    is FirebaseAuthWeakPasswordException -> {
+                        errorMessage.value = "Password is too weak"
+                    }
+
+                    else -> {
+                        errorMessage.value = e.message ?: "Registration failed"
+                    }
+                }
             }
         }
     }

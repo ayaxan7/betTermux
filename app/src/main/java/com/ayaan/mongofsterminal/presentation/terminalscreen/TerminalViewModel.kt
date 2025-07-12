@@ -6,9 +6,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ayaan.mongofsterminal.autocomplete.AutocompleteManager
-import com.ayaan.mongofsterminal.data.api.FileSystemApi
 import com.ayaan.mongofsterminal.data.api.GeminiApi
 import com.ayaan.mongofsterminal.data.model.FileSystemRequest
+import com.ayaan.mongofsterminal.data.repository.FileSystemRepository
 import com.ayaan.mongofsterminal.presentation.terminalscreen.components.data.UiFileSystemNode
 import com.google.firebase.auth.FirebaseAuth
 import com.google.gson.Gson
@@ -17,9 +17,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.collections.get
+
 @HiltViewModel
 class TerminalViewModel @Inject constructor(
-    private val fileSystemApi: FileSystemApi,
+    private val fileSystemRepository: FileSystemRepository, // Using Repository instead of direct API
     geminiApi: GeminiApi,
     private val firebaseAuth: FirebaseAuth
 ) : ViewModel() {
@@ -30,14 +31,30 @@ class TerminalViewModel @Inject constructor(
     val isLoading = mutableStateOf(false)
     val workingDir = mutableStateOf("root")
     val currentPathDisplay = mutableStateOf("~")
-    val username = mutableStateOf("ayaan")
+    val username = mutableStateOf("")
     val hostname = mutableStateOf(" )")
     var historyIndex = -1
     // State to track if user has logged out
     val isLoggedOut = mutableStateOf(false)
+    // State to track authentication errors
+    val authError = mutableStateOf<String?>(null)
     // AutocompleteManager instance
-    val autocompleteManager = AutocompleteManager(geminiApi, viewModelScope) // Set API key as needed
+    val autocompleteManager = AutocompleteManager(geminiApi, viewModelScope)
     val suggestions get() = autocompleteManager.suggestions
+
+    init {
+        // Set username from Firebase display name or email when available
+        updateUsernameFromFirebase()
+    }
+
+    private fun updateUsernameFromFirebase() {
+        val user = firebaseAuth.currentUser
+        username.value = when {
+            !user?.displayName.isNullOrEmpty() -> user?.displayName ?: "user"
+            !user?.email.isNullOrEmpty() -> user?.email?.split("@")?.first() ?: "user"
+            else -> "user"
+        }
+    }
 
     fun onCommandInputChange(input: String) {
         commandInput.value = input
@@ -69,7 +86,7 @@ class TerminalViewModel @Inject constructor(
                         action = "getChildren",
                         parentId = workingDir.value
                     )
-                    val res = fileSystemApi.performAction(req)
+                    val res = fileSystemRepository.performAction(req)
                     Log.d("TerminalVM", "ls response: $res")
                     if (res.success) {
                         try {
@@ -136,7 +153,7 @@ class TerminalViewModel @Inject constructor(
                     val dirPath = if (pathParts.size > 1) pathParts.dropLast(1).joinToString("/") else "."
 
                     val resolveParentReq = FileSystemRequest(action = "resolveNodePath", currentDirId = workingDir.value, targetPath = dirPath)
-                    val parentRes = fileSystemApi.performAction(resolveParentReq)
+                    val parentRes = fileSystemRepository.performAction(resolveParentReq)
                     if (!parentRes.success) {
                         return TerminalEntry.Output("echo: directory for '$filePath' not found.", TerminalOutputType.Error)
                     }
@@ -149,7 +166,7 @@ class TerminalViewModel @Inject constructor(
                     }
 
                     val getChildrenReq = FileSystemRequest(action = "getChildren", parentId = parentDirId)
-                    val childrenRes = fileSystemApi.performAction(getChildrenReq)
+                    val childrenRes = fileSystemRepository.performAction(getChildrenReq)
 
                     if (!childrenRes.success) {
                         return TerminalEntry.Output("echo: could not check for existing file.", TerminalOutputType.Error)
@@ -172,13 +189,13 @@ class TerminalViewModel @Inject constructor(
                             return TerminalEntry.Output("echo: cannot write to '${fileName}': Not a plain text file.", TerminalOutputType.Error)
                         }
                         val updateReq = FileSystemRequest(action = "updateFileNodeContent", id = existingFile.id, newContent = contentToWrite, append = append)
-                        val updateRes = fileSystemApi.performAction(updateReq)
+                        val updateRes = fileSystemRepository.performAction(updateReq)
                         if (!updateRes.success) {
                             return TerminalEntry.Output(updateRes.error ?: "Failed to update file", TerminalOutputType.Error)
                         }
                     } else {
                         val createReq = FileSystemRequest(action = "createFileNode", name = fileName, parentId = parentDirId, content = contentToWrite, mimeType = "text/plain")
-                        val createRes = fileSystemApi.performAction(createReq)
+                        val createRes = fileSystemRepository.performAction(createReq)
                         if (!createRes.success) {
                             return TerminalEntry.Output(createRes.error ?: "Failed to create file", TerminalOutputType.Error)
                         }
@@ -192,7 +209,7 @@ class TerminalViewModel @Inject constructor(
                         currentDirId = workingDir.value,
                         targetPath = target
                     )
-                    val res = fileSystemApi.performAction(req)
+                    val res = fileSystemRepository.performAction(req)
                     Log.d("TerminalVM", "cd response: $res")
                     if (res.success) {
                         try {
@@ -281,7 +298,7 @@ class TerminalViewModel @Inject constructor(
                         currentDirId = workingDir.value,
                         targetPath = file
                     )
-                    val res = fileSystemApi.performAction(req)
+                    val res = fileSystemRepository.performAction(req)
                     Log.d("TerminalVM", "cat resolve response: $res")
 
                     if (res.success) {
@@ -306,7 +323,7 @@ class TerminalViewModel @Inject constructor(
                                 // Now get the file node content
                                 val fileId = pathData.toString()
                                 val getNodeReq = FileSystemRequest(action = "getNode", id = fileId)
-                                val nodeRes = fileSystemApi.performAction(getNodeReq)
+                                val nodeRes = fileSystemRepository.performAction(getNodeReq)
                                 Log.d("TerminalVM", "cat getNode response: $nodeRes")
 
                                 if (nodeRes.success) {
@@ -359,7 +376,7 @@ class TerminalViewModel @Inject constructor(
                         name = dir,
                         parentId = workingDir.value
                     )
-                    val res = fileSystemApi.performAction(req)
+                    val res = fileSystemRepository.performAction(req)
                     Log.d("TerminalVM", "mkdir response: $res")
                     if (res.success) {
                         TerminalEntry.Output("Directory created", TerminalOutputType.Normal)
@@ -375,7 +392,7 @@ class TerminalViewModel @Inject constructor(
                         name = file,
                         parentId = workingDir.value
                     )
-                    val res = fileSystemApi.performAction(req)
+                    val res = fileSystemRepository.performAction(req)
                     Log.d("TerminalVM", "touch response: $res")
                     if (res.success) {
                         TerminalEntry.Output("File created", TerminalOutputType.Normal)
@@ -391,12 +408,12 @@ class TerminalViewModel @Inject constructor(
                         currentDirId = workingDir.value,
                         targetPath = target
                     )
-                    val res = fileSystemApi.performAction(req)
+                    val res = fileSystemRepository.performAction(req)
                     Log.d("TerminalVM", "rm resolve response: $res")
                     if (res.success && res.data is String) {
                         val nodeId = res.data
                         val delReq = FileSystemRequest(action = "deleteNodeAction", nodeId = nodeId)
-                        val delRes = fileSystemApi.performAction(delReq)
+                        val delRes = fileSystemRepository.performAction(delReq)
                         Log.d("TerminalVM", "rm delete response: $delRes")
                         if (delRes.success) {
                             TerminalEntry.Output("Deleted", TerminalOutputType.Normal)
@@ -412,7 +429,7 @@ class TerminalViewModel @Inject constructor(
                         action = "getNodePathString",
                         nodeId = workingDir.value
                     )
-                    val res = fileSystemApi.performAction(req)
+                    val res = fileSystemRepository.performAction(req)
                     Log.d("TerminalVM", "pwd response: $res")
                     if (res.success) {
                         TerminalEntry.Output(res.data?.toString() ?: "", TerminalOutputType.Normal)

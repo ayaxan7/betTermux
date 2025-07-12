@@ -4,6 +4,7 @@ package com.ayaan.mongofsterminal.data.model
 
 data class FileSystemRequest(
     val action: String,
+    val uid: String? = null, // Firebase Auth UID for user isolation
     val id: String? = null,
     val parentId: String? = null,
     val nodeId: String? = null,

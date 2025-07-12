@@ -56,9 +56,9 @@ android {
         buildConfig = true
     }
 
-     composeOptions {
-         kotlinCompilerExtensionVersion = libs.versions.kotlin.get()
-     }
+//     composeOptions {
+//         kotlinCompilerExtensionVersion = libs.versions.kotlin.get()
+//     }
 }
 
 dependencies {
@@ -80,6 +80,7 @@ dependencies {
     implementation(libs.retrofit.converter.gson)
     implementation(libs.okhttp)
     implementation(libs.androidx.biometric)
+    implementation(libs.kotlin.reflect)
 
     // Testing
     testImplementation(libs.junit)
