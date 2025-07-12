@@ -101,13 +101,6 @@ fun SignInScreen(
     }
 
     // Check if user is already signed in
-    LaunchedEffect(Unit) {
-        viewModel.checkCurrentUser {
-            navController.navigate(Route.TerminalScreen.route) {
-                popUpTo(Route.SignInScreen.route) { inclusive = true }
-            }
-        }
-    }
 
     Box(
         modifier = Modifier
