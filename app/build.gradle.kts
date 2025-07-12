@@ -7,6 +7,7 @@ plugins {
     id("com.google.dagger.hilt.android")
     id("com.google.devtools.ksp")
     id("kotlin-parcelize")
+    alias(libs.plugins.google.gms.google.services)
 }
 
 val localPropertiesFile = rootProject.file("local.properties")
@@ -73,6 +74,7 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.hilt.android)
+    implementation(libs.firebase.auth)
     ksp(libs.google.hilt.compiler)
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.gson)
