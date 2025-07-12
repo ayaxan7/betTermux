@@ -34,7 +34,6 @@ import com.ayaan.mongofsterminal.presentation.terminalscreen.components.DisplayI
 import com.ayaan.mongofsterminal.presentation.terminalscreen.components.TerminalOutputLine
 import com.ayaan.mongofsterminal.presentation.terminalscreen.components.TerminalPromptLine
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun TerminalScreen(navController: NavController, viewModel: TerminalViewModel = hiltViewModel()) {
     val commandInput by viewModel.commandInput

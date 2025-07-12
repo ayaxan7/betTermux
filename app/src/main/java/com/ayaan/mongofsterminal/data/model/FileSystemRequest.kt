@@ -20,4 +20,3 @@ data class FileSystemRequest(
     val pattern: String? = null,
     val fileId: String? = null
 )
-

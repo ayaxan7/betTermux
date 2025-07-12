@@ -16,11 +16,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.collections.get
-import com.ayaan.mongofsterminal.BuildConfig
 @HiltViewModel
 class TerminalViewModel @Inject constructor(
     private val fileSystemApi: FileSystemApi,
-    private val geminiApi: GeminiApi
+    geminiApi: GeminiApi
 ) : ViewModel() {
     val commandInput = mutableStateOf("")
     val commandHistory = mutableStateListOf<TerminalEntry>()
@@ -42,7 +41,6 @@ class TerminalViewModel @Inject constructor(
         // Pass the command history to the fetchSuggestions function
         autocompleteManager.fetchSuggestions(input, commandHistoryStrings)
     }
-
     fun onCommandSubmit() {
         val command = commandInput.value.trim()
         if (command.isEmpty()) return
