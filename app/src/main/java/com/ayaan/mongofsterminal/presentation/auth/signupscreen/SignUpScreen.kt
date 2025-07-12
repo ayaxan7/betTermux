@@ -55,12 +55,14 @@ fun SignUpScreen(
 
     val scrollState = rememberScrollState()
     var showCursor by remember { mutableStateOf(true) }
-    var currentText by remember { mutableStateOf(0) }
+    var displayedText by remember { mutableStateOf("") }
+    var isTyping by remember { mutableStateOf(true) }
     val texts = listOf(
         "/* Welcome to BetterMux Terminal */",
         "/* Create a new account... */",
         "/* Enter your credentials below */",
     )
+    var currentTextIndex by remember { mutableStateOf(0) }
 
     // Animation for blinking cursor
     LaunchedEffect(Unit) {
@@ -70,15 +72,30 @@ fun SignUpScreen(
         }
     }
 
-    // Animation for typewriter effect
+    // Enhanced animation for typing and deleting text carousel
     LaunchedEffect(Unit) {
-        var index = 0
-        while (index < texts.size) {
-            currentText = index
-            delay(1500)
-            index++
-            if(index==texts.size){
-                index=0
+        while (true) {
+            val currentFullText = texts[currentTextIndex]
+
+            // Typing phase
+            if (isTyping) {
+                for (i in 1..currentFullText.length) {
+                    displayedText = currentFullText.substring(0, i)
+                    delay(60) // Typing speed
+                }
+                delay(1200) // Pause at the end of typing
+                isTyping = false
+            }
+            // Deleting phase
+            else {
+                for (i in currentFullText.length downTo 0) {
+                    displayedText = currentFullText.substring(0, i)
+                    delay(20) // Deletion speed (faster than typing)
+                }
+                // Move to next text
+                currentTextIndex = (currentTextIndex + 1) % texts.size
+                isTyping = true
+                delay(300) // Pause before starting next text
             }
         }
     }
@@ -104,16 +121,23 @@ fun SignUpScreen(
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Animated text
-            Text(
-                text = texts[currentText] + if (showCursor) "_" else "",
-                color = Color.Cyan,
-                fontFamily = FontFamily.Monospace,
-                fontSize = 16.sp,
-                modifier = Modifier.padding(vertical = 8.dp)
-            )
+            // Animated text with cursor
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = displayedText,
+                    color = Color.Cyan,
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 16.sp
+                )
+                Text(
+                    text = if (showCursor) "_" else " ",
+                    color = Color.Cyan,
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 16.sp
+                )
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 

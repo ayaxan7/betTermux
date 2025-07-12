@@ -55,11 +55,14 @@ fun SignInScreen(
 
     val scrollState = rememberScrollState()
     var showCursor by remember { mutableStateOf(true) }
-    var currentText by remember { mutableStateOf(0) }
+    var displayedText by remember { mutableStateOf("") }
+    var isTyping by remember { mutableStateOf(true) }
     val texts = listOf(
         "/* Welcome to BetterMux Terminal */",
-        "/* Sign in to continue... */"
+        "/* Sign in to continue... */",
+        "/* Enter your credentials below*/",
     )
+    var currentTextIndex by remember { mutableStateOf(0) }
 
     // Animation for blinking cursor
     LaunchedEffect(Unit) {
@@ -69,13 +72,31 @@ fun SignInScreen(
         }
     }
 
-    // Animation for typewriter effect
+    // Enhanced animation for typing and deleting text carousel
     LaunchedEffect(Unit) {
-        var index = 0
-        while (index < texts.size) {
-            currentText = index
-            delay(2000)
-            index++
+        while (true) {
+            val currentFullText = texts[currentTextIndex]
+
+            // Typing phase
+            if (isTyping) {
+                for (i in 1..currentFullText.length) {
+                    displayedText = currentFullText.substring(0, i)
+                    delay(60) // Typing speed
+                }
+                delay(1200) // Pause at the end of typing
+                isTyping = false
+            }
+            // Deleting phase
+            else {
+                for (i in currentFullText.length downTo 0) {
+                    displayedText = currentFullText.substring(0, i)
+                    delay(20) // Deletion speed (faster than typing)
+                }
+                // Move to next text
+                currentTextIndex = (currentTextIndex + 1) % texts.size
+                isTyping = true
+                delay(300) // Pause before starting next text
+            }
         }
     }
 
@@ -113,7 +134,7 @@ fun SignInScreen(
 
             // Animated text
             Text(
-                text = texts[currentText] + if (showCursor) "_" else "",
+                text = displayedText + if (showCursor) "_" else "",
                 color = Color.Cyan,
                 fontFamily = FontFamily.Monospace,
                 fontSize = 16.sp,
