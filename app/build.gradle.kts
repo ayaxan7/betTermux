@@ -1,4 +1,5 @@
 import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -7,13 +8,14 @@ plugins {
     id("com.google.devtools.ksp")
     id("kotlin-parcelize")
 }
+
 val localPropertiesFile = rootProject.file("local.properties")
 val localProperties = Properties().apply {
     if (localPropertiesFile.exists()) {
         localPropertiesFile.inputStream().use { load(it) }
     }
 }
-val geminiApiKey = localProperties.getProperty("GEMINI_API_KEY") ?: "\"MISSING_API_KEY\""
+val geminiApiKey = localProperties.getProperty("GEMINI_API_KEY") ?: "MISSING_API_KEY"
 
 android {
     namespace = "com.ayaan.mongofsterminal"
@@ -38,28 +40,34 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
     kotlinOptions {
         jvmTarget = "11"
     }
+
     buildFeatures {
         compose = true
-        buildConfig=true
+        buildConfig = true
     }
-    composeOptions{
-        kotlinCompilerExtensionVersion = libs.versions.kotlin.get()
-    }
+
+     composeOptions {
+         kotlinCompilerExtensionVersion = libs.versions.kotlin.get()
+     }
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.ui)
+    implementation(libs.androidx.ui.graphics)
+    implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.navigation.compose)
@@ -69,6 +77,8 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.gson)
     implementation(libs.okhttp)
+    implementation(libs.androidx.biometric)
+
     // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -83,6 +93,4 @@ dependencies {
     kspAndroidTest(libs.google.hilt.compiler)
     testImplementation(libs.dagger.hilt.android.testing)
     kspTest(libs.google.hilt.compiler)
-
-    implementation(libs.androidx.biometric)
 }

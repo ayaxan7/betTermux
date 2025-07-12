@@ -16,7 +16,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.collections.get
-
+import com.ayaan.mongofsterminal.BuildConfig
 @HiltViewModel
 class TerminalViewModel @Inject constructor(
     private val fileSystemApi: FileSystemApi,
@@ -31,11 +31,12 @@ class TerminalViewModel @Inject constructor(
     val hostname = mutableStateOf(" )")
     var historyIndex = -1
     // AutocompleteManager instance
-    val autocompleteManager = AutocompleteManager(geminiApi, viewModelScope, "") // Set API key as needed
+    val autocompleteManager = AutocompleteManager(geminiApi, viewModelScope) // Set API key as needed
     val suggestions get() = autocompleteManager.suggestions
 
     fun onCommandInputChange(input: String) {
         commandInput.value = input
+        Log.d("GeminiIntegration", "Fetching Gemini suggestions for input: $input")
         autocompleteManager.fetchSuggestions(input)
     }
 

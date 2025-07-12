@@ -3,6 +3,8 @@ package com.ayaan.mongofsterminal.data.api
 import retrofit2.http.Body
 import retrofit2.http.Headers
 import retrofit2.http.POST
+import com.ayaan.mongofsterminal.BuildConfig
+
 data class GeminiRequest(
     val contents: List<GeminiContent>
 )
@@ -20,10 +22,12 @@ data class GeminiCandidate(
 )
 
 interface GeminiApi {
-    @Headers("Content-Type: application/json")
-    @POST("/v1beta/models/gemini-pro:generateContent")
+    @Headers(
+        "Content-Type: application/json",
+        "X-goog-api-key: ${BuildConfig.GEMINI_API_KEY}"
+    )
+    @POST("/v1beta/models/gemini-2.0-flash:generateContent")
     suspend fun getSuggestions(
         @Body request: GeminiRequest
     ): GeminiResponse
 }
-
