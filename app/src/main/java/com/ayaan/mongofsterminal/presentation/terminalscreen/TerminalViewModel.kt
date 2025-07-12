@@ -132,75 +132,52 @@ class TerminalViewModel @Inject constructor(
 
                 "echo" -> {
                     val commandString = tokens.joinToString(" ")
-                    val redirectOp = if (commandString.contains(">>")) ">>" else if (commandString.contains(">")) ">" else null
+
+                    // Check if this might be a direct file write without redirection operators
+                    if (!commandString.contains(">") && tokens.size >= 3) {
+                        // This could be "echo content filename" format
+                        val content = tokens.subList(1, tokens.size - 1).joinToString(" ")
+                        val filename = tokens.last()
+
+                        // Only treat as file write if the last token doesn't have quotes and
+                        // looks like a potential filename (contains no spaces)
+                        if (!filename.contains("\"") && !filename.contains(" ")) {
+                            return handleEchoFileWrite(content, filename, false)
+                        }
+                    }
+
+                    // Improved redirection detection that handles >> and > properly
+                    val appendRedirect = ">>"
+                    val overwriteRedirect = ">"
+
+                    val redirectOp = when {
+                        commandString.contains(appendRedirect) -> appendRedirect
+                        commandString.contains(overwriteRedirect) -> overwriteRedirect
+                        else -> null
+                    }
 
                     if (redirectOp == null) {
                         return TerminalEntry.Output(tokens.drop(1).joinToString(" "), TerminalOutputType.Normal)
                     }
 
-                    val parts = commandString.split(redirectOp, limit = 2)
-                    val contentToWrite = parts[0].substringAfter("echo").trim()
-                    val filePath = parts.getOrNull(1)?.trim()
+                    // Split command on first occurrence of redirection operator
+                    // This handles case when content includes quotes or special characters
+                    val contentPart = commandString.substringBefore(redirectOp)
+                    val filePart = commandString.substringAfter(redirectOp)
 
-                    if (filePath.isNullOrEmpty()) {
+                    val contentToWrite = contentPart.substringAfter("echo").trim()
+                    val filePath = filePart.trim()
+
+                    if (filePath.isEmpty()) {
                         return TerminalEntry.Output("echo: missing output file", TerminalOutputType.Error)
                     }
 
-                    val append = redirectOp == ">>"
+                    val append = redirectOp == appendRedirect
 
-                    val pathParts = filePath.split('/')
-                    val fileName = pathParts.last()
-                    val dirPath = if (pathParts.size > 1) pathParts.dropLast(1).joinToString("/") else "."
+                    // Add debug logging
+                    Log.d("TerminalVM", "Echo redirect: op=$redirectOp, content='$contentToWrite', file='$filePath', append=$append")
 
-                    val resolveParentReq = FileSystemRequest(action = "resolveNodePath", currentDirId = workingDir.value, targetPath = dirPath)
-                    val parentRes = fileSystemRepository.performAction(resolveParentReq)
-                    if (!parentRes.success) {
-                        return TerminalEntry.Output("echo: directory for '$filePath' not found.", TerminalOutputType.Error)
-                    }
-
-                    val parentData = parentRes.data as? Map<*, *>
-                    val parentDirId = parentData?.get("id") as? String
-
-                    if (parentDirId == null) {
-                        return TerminalEntry.Output("echo: could not resolve parent directory.", TerminalOutputType.Error)
-                    }
-
-                    val getChildrenReq = FileSystemRequest(action = "getChildren", parentId = parentDirId)
-                    val childrenRes = fileSystemRepository.performAction(getChildrenReq)
-
-                    if (!childrenRes.success) {
-                        return TerminalEntry.Output("echo: could not check for existing file.", TerminalOutputType.Error)
-                    }
-
-                    val gson = Gson()
-                    val childrenJson = gson.toJson(childrenRes.data)
-                    val itemType = object : TypeToken<List<UiFileSystemNode>>() {}.type
-                    val items = gson.fromJson<List<UiFileSystemNode>>(childrenJson, itemType) ?: emptyList()
-
-                    val existingFile = items.find { it.name == fileName && it.type == "file" }
-                    val existingDir = items.find { it.name == fileName && it.type == "directory" }
-
-                    if (existingDir != null) {
-                        return TerminalEntry.Output("echo: cannot write to '$filePath': Is a directory", TerminalOutputType.Error)
-                    }
-
-                    if (existingFile != null) {
-                        if (existingFile.mimeType != null && existingFile.mimeType != "text/plain") {
-                            return TerminalEntry.Output("echo: cannot write to '${fileName}': Not a plain text file.", TerminalOutputType.Error)
-                        }
-                        val updateReq = FileSystemRequest(action = "updateFileNodeContent", id = existingFile.id, newContent = contentToWrite, append = append)
-                        val updateRes = fileSystemRepository.performAction(updateReq)
-                        if (!updateRes.success) {
-                            return TerminalEntry.Output(updateRes.error ?: "Failed to update file", TerminalOutputType.Error)
-                        }
-                    } else {
-                        val createReq = FileSystemRequest(action = "createFileNode", name = fileName, parentId = parentDirId, content = contentToWrite, mimeType = "text/plain")
-                        val createRes = fileSystemRepository.performAction(createReq)
-                        if (!createRes.success) {
-                            return TerminalEntry.Output(createRes.error ?: "Failed to create file", TerminalOutputType.Error)
-                        }
-                    }
-                    TerminalEntry.Output("", TerminalOutputType.Normal)
+                    return handleEchoFileWrite(contentToWrite, filePath, append)
                 }
                 "cd" -> {
                     val target = tokens.getOrNull(1) ?: "~"
@@ -463,6 +440,116 @@ class TerminalViewModel @Inject constructor(
         } catch (e: Exception) {
             Log.e("TerminalVM", "Exception: ${e.message}", e)
             TerminalEntry.Output(e.message ?: "Error", TerminalOutputType.Error)
+        }
+    }
+
+    private suspend fun handleEchoFileWrite(content: String, filePath: String, append: Boolean): TerminalEntry {
+        // Add debug logging to help troubleshoot
+        Log.d("TerminalVM", "handleEchoFileWrite: content='$content', filePath='$filePath', append=$append")
+
+        val pathParts = filePath.split('/')
+        val fileName = pathParts.last()
+        val dirPath = if (pathParts.size > 1) pathParts.dropLast(1).joinToString("/") else "."
+
+        Log.d("TerminalVM", "handleEchoFileWrite: fileName='$fileName', dirPath='$dirPath', workingDir='${workingDir.value}'")
+
+        // If we're writing to a file in the current directory, use workingDir directly
+        // instead of trying to resolve "." which might be causing issues
+        if (dirPath == "." || dirPath.isEmpty()) {
+            // We're in the current directory, use workingDir directly
+            val parentDirId = workingDir.value
+
+            // Get children to check if file exists
+            val getChildrenReq = FileSystemRequest(action = "getChildren", parentId = parentDirId)
+            val childrenRes = fileSystemRepository.performAction(getChildrenReq)
+
+            if (!childrenRes.success) {
+                return TerminalEntry.Output("echo: could not check for existing file.", TerminalOutputType.Error)
+            }
+
+            val gson = Gson()
+            val childrenJson = gson.toJson(childrenRes.data)
+            val itemType = object : TypeToken<List<UiFileSystemNode>>() {}.type
+            val items = gson.fromJson<List<UiFileSystemNode>>(childrenJson, itemType) ?: emptyList()
+
+            val existingFile = items.find { it.name == fileName && it.type == "file" }
+            val existingDir = items.find { it.name == fileName && it.type == "directory" }
+
+            if (existingDir != null) {
+                return TerminalEntry.Output("echo: cannot write to '$filePath': Is a directory", TerminalOutputType.Error)
+            }
+
+            if (existingFile != null) {
+                if (existingFile.mimeType != null && existingFile.mimeType != "text/plain") {
+                    return TerminalEntry.Output("echo: cannot write to '${fileName}': Not a plain text file.", TerminalOutputType.Error)
+                }
+                val updateReq = FileSystemRequest(action = "updateFileNodeContent", id = existingFile.id, newContent = content, append = append)
+                val updateRes = fileSystemRepository.performAction(updateReq)
+                if (!updateRes.success) {
+                    return TerminalEntry.Output(updateRes.error ?: "Failed to update file", TerminalOutputType.Error)
+                }
+            } else {
+                val createReq = FileSystemRequest(action = "createFileNode", name = fileName, parentId = parentDirId, content = content, mimeType = "text/plain")
+                val createRes = fileSystemRepository.performAction(createReq)
+                if (!createRes.success) {
+                    return TerminalEntry.Output(createRes.error ?: "Failed to create file", TerminalOutputType.Error)
+                }
+            }
+            return TerminalEntry.Output("", TerminalOutputType.Normal)
+
+        } else {
+            // Original code for paths with directories
+            val resolveParentReq = FileSystemRequest(action = "resolveNodePath", currentDirId = workingDir.value, targetPath = dirPath)
+            val parentRes = fileSystemRepository.performAction(resolveParentReq)
+            Log.d("TerminalVM", "handleEchoFileWrite: resolveParentReq response success=${parentRes.success}, data=${parentRes.data}")
+
+            if (!parentRes.success) {
+                return TerminalEntry.Output("echo: directory for '$filePath' not found.", TerminalOutputType.Error)
+            }
+
+            val parentData = parentRes.data as? Map<*, *>
+            val parentDirId = parentData?.get("id") as? String
+
+            if (parentDirId == null) {
+                return TerminalEntry.Output("echo: could not resolve parent directory.", TerminalOutputType.Error)
+            }
+
+            val getChildrenReq = FileSystemRequest(action = "getChildren", parentId = parentDirId)
+            val childrenRes = fileSystemRepository.performAction(getChildrenReq)
+
+            if (!childrenRes.success) {
+                return TerminalEntry.Output("echo: could not check for existing file.", TerminalOutputType.Error)
+            }
+
+            val gson = Gson()
+            val childrenJson = gson.toJson(childrenRes.data)
+            val itemType = object : TypeToken<List<UiFileSystemNode>>() {}.type
+            val items = gson.fromJson<List<UiFileSystemNode>>(childrenJson, itemType) ?: emptyList()
+
+            val existingFile = items.find { it.name == fileName && it.type == "file" }
+            val existingDir = items.find { it.name == fileName && it.type == "directory" }
+
+            if (existingDir != null) {
+                return TerminalEntry.Output("echo: cannot write to '$filePath': Is a directory", TerminalOutputType.Error)
+            }
+
+            if (existingFile != null) {
+                if (existingFile.mimeType != null && existingFile.mimeType != "text/plain") {
+                    return TerminalEntry.Output("echo: cannot write to '${fileName}': Not a plain text file.", TerminalOutputType.Error)
+                }
+                val updateReq = FileSystemRequest(action = "updateFileNodeContent", id = existingFile.id, newContent = content, append = append)
+                val updateRes = fileSystemRepository.performAction(updateReq)
+                if (!updateRes.success) {
+                    return TerminalEntry.Output(updateRes.error ?: "Failed to update file", TerminalOutputType.Error)
+                }
+            } else {
+                val createReq = FileSystemRequest(action = "createFileNode", name = fileName, parentId = parentDirId, content = content, mimeType = "text/plain")
+                val createRes = fileSystemRepository.performAction(createReq)
+                if (!createRes.success) {
+                    return TerminalEntry.Output(createRes.error ?: "Failed to create file", TerminalOutputType.Error)
+                }
+            }
+            return TerminalEntry.Output("", TerminalOutputType.Normal)
         }
     }
 
