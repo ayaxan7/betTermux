@@ -36,7 +36,6 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
@@ -59,7 +58,6 @@ import com.ayaan.mongofsterminal.presentation.terminalscreen.components.Terminal
 import com.ayaan.mongofsterminal.presentation.terminalscreen.components.TerminalPromptLine
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun TerminalScreen(
     navController: NavController, viewModel: TerminalViewModel = hiltViewModel()
