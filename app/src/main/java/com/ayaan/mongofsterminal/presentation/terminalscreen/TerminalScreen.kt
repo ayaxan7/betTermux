@@ -80,7 +80,7 @@ fun TerminalScreen(
             .fillMaxSize()
             .background(Color.Black, shape = MaterialTheme.shapes.medium)
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
             Column(
                 modifier = Modifier
                     .padding(12.dp)
