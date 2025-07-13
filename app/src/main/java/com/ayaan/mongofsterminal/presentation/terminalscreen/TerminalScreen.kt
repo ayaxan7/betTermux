@@ -29,6 +29,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.ayaan.mongofsterminal.navigation.Route
 import com.ayaan.mongofsterminal.presentation.terminalscreen.components.DirectoryEntryLine
 import com.ayaan.mongofsterminal.presentation.terminalscreen.components.DisplayImageFromBase64
 import com.ayaan.mongofsterminal.presentation.terminalscreen.components.TerminalOutputLine
@@ -40,15 +41,24 @@ fun TerminalScreen(
     navController: NavController,
     viewModel: TerminalViewModel = hiltViewModel()
 ) {
-    // Observe the logout state
     val isLoggedOut by viewModel.isLoggedOut
+
+    val isAccountDeleted by viewModel.isAccountDeleted
 
     // Navigate to sign-in screen when user logs out
     LaunchedEffect(isLoggedOut) {
         if (isLoggedOut) {
-            navController.navigate("signin_screen") {
-                // Clear the back stack so user can't navigate back to terminal after logout
-                popUpTo("terminal_screen") { inclusive = true }
+            navController.navigate(Route.SignUpScreen.route) {
+                popUpTo(Route.TerminalScreen.route) { inclusive = true }
+            }
+        }
+    }
+
+    // Navigate to sign-in screen when user's account is deleted
+    LaunchedEffect(isAccountDeleted) {
+        if (isAccountDeleted) {
+            navController.navigate(Route.SignUpScreen.route) {
+                popUpTo(Route.TerminalScreen.route) { inclusive = true }
             }
         }
     }

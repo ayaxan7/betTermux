@@ -1,10 +1,12 @@
 package com.ayaan.mongofsterminal.data.repository
 
+import android.util.Log
 import com.ayaan.mongofsterminal.data.api.FileSystemApi
 import com.ayaan.mongofsterminal.data.model.ApiRequest
 import com.ayaan.mongofsterminal.data.model.FileSystemRequest
 import com.ayaan.mongofsterminal.data.model.FileSystemResponse
 import com.google.firebase.auth.FirebaseAuth
+import retrofit2.HttpException
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.reflect.full.memberProperties
@@ -32,7 +34,6 @@ class FileSystemRepository @Inject constructor(
 
         // Convert request to payload format expected by the updated API
         val payload = buildPayloadFromRequest(request)
-
         // Create API request with proper structure
         val apiRequest = ApiRequest(
             action = request.action,
@@ -41,7 +42,20 @@ class FileSystemRepository @Inject constructor(
         )
 
         return try {
+            Log.d(
+                "FileSystemRepository",
+                "Performing action: ${request.action} for user: $uid with body: $apiRequest"
+            )
             fileSystemApi.performAction(apiRequest)
+        } catch (e: HttpException) {
+            val errorBody = e.response()?.errorBody()?.string()
+            Log.e("API_ERROR", "HTTP ${e.code()}: $errorBody")
+            Log.e("API_ERROR", "Request URL: ${e.response()?.raw()?.request?.url}")
+            FileSystemResponse(
+                success = false,
+                error = "HTTP ${e.code()}: $errorBody",
+                data = null
+            )
         } catch (e: Exception) {
             e.printStackTrace()
             // Handle network errors and return a properly formatted response
@@ -83,7 +97,11 @@ class FileSystemRepository @Inject constructor(
      */
     private fun buildPayloadFromRequest(request: FileSystemRequest): Map<String, Any?> {
         val payload = mutableMapOf<String, Any?>()
-
+        // If the request already contains a payload, use that as the base
+        if (request.payload != null) {
+            return request.payload
+        }
+        // Otherwise build payload from individual fields
         // Add all non-null fields to the payload except action and uid
         if (request.id != null) payload["id"] = request.id
         if (request.parentId != null) payload["parentId"] = request.parentId
@@ -100,7 +118,7 @@ class FileSystemRepository @Inject constructor(
         if (request.newName != null) payload["newName"] = request.newName
         if (request.pattern != null) payload["pattern"] = request.pattern
         if (request.fileId != null) payload["fileId"] = request.fileId
-
+        if (request.uid != null) payload["userId"] = request.uid
         return payload
     }
 

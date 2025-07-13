@@ -19,5 +19,6 @@ data class FileSystemRequest(
     val newParentId: String? = null,
     val newName: String? = null,
     val pattern: String? = null,
-    val fileId: String? = null
+    val fileId: String? = null,
+    val payload: Map<String, Any?>? = null
 )

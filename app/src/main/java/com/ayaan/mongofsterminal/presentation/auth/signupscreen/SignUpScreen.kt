@@ -254,7 +254,9 @@ fun SignUpScreen(
                     color = Color.Gray,
                     fontFamily = FontFamily.Monospace
                 )
-                TextButton(onClick = { navController.navigate(Route.SignInScreen.route) }) {
+                TextButton(onClick = { navController.navigate(Route.SignInScreen.route){
+                    popUpTo(Route.SignUpScreen.route){ inclusive = true}
+                } }) {
                     Text(
                         text = "Sign in",
                         color = Color(0xFF4EB839),

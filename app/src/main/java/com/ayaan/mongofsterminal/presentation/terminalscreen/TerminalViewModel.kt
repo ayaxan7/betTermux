@@ -36,6 +36,8 @@ class TerminalViewModel @Inject constructor(
     var historyIndex = -1
     // State to track if user has logged out
     val isLoggedOut = mutableStateOf(false)
+    // State to track if account has been deleted
+    val isAccountDeleted = mutableStateOf(false)
     // State to track authentication errors
     val authError = mutableStateOf<String?>(null)
     // AutocompleteManager instance
@@ -434,6 +436,81 @@ class TerminalViewModel @Inject constructor(
                     TerminalEntry.Output("Logging out...", TerminalOutputType.Normal)
                 }
 
+                "deleteaccount" -> {
+                    val currentUser = firebaseAuth.currentUser
+
+                    if (currentUser == null) {
+                        return TerminalEntry.Output("Error: You must be logged in to delete your account", TerminalOutputType.Error)
+                    }
+
+                    // Check if the user entered the confirmation parameter
+                    val confirmParam = tokens.getOrNull(1)
+                    if (confirmParam != "--confirm") {
+                        return TerminalEntry.Output(
+                            "Warning: This will permanently delete your account and all associated data.\n" +
+                            "To confirm, type: deleteaccount --confirm",
+                            TerminalOutputType.Error
+                        )
+                    }
+
+                    try {
+                        // Try to delete the user account
+                        isLoading.value = true
+
+                        // Get the current user's UID for backend data deletion
+                        val uid = currentUser.uid
+
+                        // First, make API call to delete user data from backend
+                        val deleteDataReq = FileSystemRequest(
+                            action = "deleteUserAccount",
+                            payload = mapOf("userId" to uid)
+                        )
+                        viewModelScope.launch {
+                            try {
+                                // Make the API call to delete user data
+                                val deleteDataRes = fileSystemRepository.performAction(deleteDataReq)
+
+                                if (deleteDataRes.success) {
+                                    // Log successful data deletion
+                                    val deletedCount = (deleteDataRes.data as? Map<*, *>)?.get("deletedCount") as? Int ?: 0
+                                    val message = (deleteDataRes.data as? Map<*, *>)?.get("message") as? String ?: ""
+                                    Log.d("TerminalVM", "Backend data deletion successful: $message ($deletedCount items removed)")
+
+                                    commandHistory.add(TerminalEntry.Output(
+                                        "Successfully deleted all user data: $deletedCount files and directories removed.",
+                                        TerminalOutputType.Normal
+                                    ))
+                                } else {
+                                    Log.e("TerminalVM", "Failed to delete backend data: ${deleteDataRes.error}")
+                                    commandHistory.add(TerminalEntry.Output(
+                                        "Warning: Failed to delete your data from our servers. Please contact support.",
+                                        TerminalOutputType.Error
+                                    ))
+                                }
+
+                                // Now delete the Firebase user account
+                                deleteFirebaseAccount(currentUser)
+
+                            } catch (e: Exception) {
+                                Log.e("TerminalVM", "Exception during backend data deletion: ${e.message}", e)
+                                commandHistory.add(TerminalEntry.Output(
+                                    "Warning: Failed to delete your data from our servers. Please contact support.",
+                                    TerminalOutputType.Error
+                                ))
+
+                                // Still attempt to delete the Firebase account
+                                deleteFirebaseAccount(currentUser)
+                            }
+                        }
+
+                        return TerminalEntry.Output("Deleting account and all associated data...", TerminalOutputType.Normal)
+                    } catch (e: Exception) {
+                        isLoading.value = false
+                        Log.e("TerminalVM", "Exception during account deletion: ${e.message}", e)
+                        return TerminalEntry.Output("Error: ${e.message}", TerminalOutputType.Error)
+                    }
+                }
+
                 // Add more commands as needed
                 else -> TerminalEntry.Output("Unknown command: ${tokens[0]}", TerminalOutputType.Error)
             }
@@ -550,6 +627,27 @@ class TerminalViewModel @Inject constructor(
                 }
             }
             return TerminalEntry.Output("", TerminalOutputType.Normal)
+        }
+    }
+
+    private fun deleteFirebaseAccount(user: com.google.firebase.auth.FirebaseUser) {
+        user.delete().addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                // Set the account deleted flag
+                isAccountDeleted.value = true
+
+                // Log the successful deletion
+                Log.d("TerminalVM", "Firebase user account successfully deleted")
+            } else {
+                // If deletion fails, show the error
+                val error = task.exception?.message ?: "Unknown error"
+                Log.e("TerminalVM", "Failed to delete Firebase account: $error")
+                commandHistory.add(TerminalEntry.Output(
+                    "Failed to delete account: $error\nYou may need to re-authenticate.",
+                    TerminalOutputType.Error
+                ))
+            }
+            isLoading.value = false
         }
     }
 

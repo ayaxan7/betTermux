@@ -11,6 +11,7 @@ import androidx.navigation.compose.rememberNavController
 import com.ayaan.mongofsterminal.presentation.auth.signinscreen.SignInScreen
 import com.ayaan.mongofsterminal.presentation.auth.signupscreen.SignUpScreen
 import com.ayaan.mongofsterminal.presentation.fingerPrintScreen.FingerprintScreen
+import com.ayaan.mongofsterminal.presentation.splashscreen.SplashScreen
 import com.ayaan.mongofsterminal.presentation.terminalscreen.TerminalScreen
 import com.google.firebase.auth.FirebaseAuth
 
@@ -18,12 +19,14 @@ import com.google.firebase.auth.FirebaseAuth
 @Composable
 fun AppNavigation(modifier: Modifier) {
     val navController = rememberNavController()
-    val auth= FirebaseAuth.getInstance()
-    val user = auth.currentUser
-    val uid= user?.uid ?: ""
-    Log.d("AppNavigation", "Current User ID: $uid")
-    val startDestination = if (user != null) Route.TerminalScreen.route else Route.SignInScreen.route
-    NavHost(startDestination = startDestination, navController = navController){
+
+    // Always start with the splash screen regardless of auth status
+    // The splash screen will handle navigation based on backend status and auth
+    NavHost(startDestination = Route.SplashScreen.route, navController = navController){
+        composable(Route.SplashScreen.route) {
+            SplashScreen(navController = navController)
+        }
+
         composable(Route.SignInScreen.route) {
             SignInScreen(navController = navController)
         }
