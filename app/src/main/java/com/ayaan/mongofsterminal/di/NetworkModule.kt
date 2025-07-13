@@ -36,6 +36,7 @@ object NetworkModule {
         return Retrofit.Builder()
             .baseUrl("https://backend-render-m20l.onrender.com") // Default, can be changed at runtime
             .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
 
