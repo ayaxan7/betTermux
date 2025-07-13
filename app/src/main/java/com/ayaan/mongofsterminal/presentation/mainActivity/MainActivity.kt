@@ -3,18 +3,19 @@ package com.ayaan.mongofsterminal.presentation.mainActivity
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.graphics.Color
 import androidx.fragment.app.FragmentActivity
 import com.ayaan.mongofsterminal.navigation.AppNavigation
 import com.ayaan.mongofsterminal.ui.theme.MongoFSTerminalTheme
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -22,10 +23,22 @@ class MainActivity : FragmentActivity() {
     @RequiresApi(Build.VERSION_CODES.P)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+//        enableEdgeToEdge()
         setContent {
-            MongoFSTerminalTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+            MongoFSTerminalTheme(darkTheme = false) {
+                val systemUiController = rememberSystemUiController()
+                SideEffect {
+                    systemUiController.setStatusBarColor(
+                        color = Color.Black,
+                    )
+                    systemUiController.setNavigationBarColor(
+                        color = Color.Black,
+                    )
+                }
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
+                    contentWindowInsets = WindowInsets.safeDrawing
+                ) { innerPadding ->
                     AppNavigation(modifier = Modifier.padding(innerPadding))
                 }
             }
