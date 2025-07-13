@@ -1,4 +1,4 @@
-package com.ayaan.mongofsterminal.mainActivity
+package com.ayaan.mongofsterminal.presentation.mainActivity
 
 import android.os.Build
 import android.os.Bundle
