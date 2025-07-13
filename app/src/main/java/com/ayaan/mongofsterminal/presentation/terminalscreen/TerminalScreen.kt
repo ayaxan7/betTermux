@@ -74,7 +74,7 @@ fun TerminalScreen(
     DisposableEffect(systemUiController) {
         // Make status bar transparent with dark icons
         systemUiController.setSystemBarsColor(
-            color = Color.Transparent, darkIcons = false
+            color = Color.Black, darkIcons = false
         )
         onDispose {}
     }
@@ -156,7 +156,7 @@ fun TerminalScreen(
                             horizontalArrangement = Arrangement.Center
                         ) {
                             Text(
-                                text = "BetterMux Terminal",
+                                text = "┌─[ BetterMux ]─[ $username@$hostname ]",
                                 color = Color(0xFF4FC3F7),
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
