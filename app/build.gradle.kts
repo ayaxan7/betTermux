@@ -78,6 +78,7 @@ dependencies {
     ksp(libs.google.hilt.compiler)
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.gson)
+//    implementation("com.squareup.retrofit2:converter-scalars:2.11.0") // For handling plain text responses like the health check
     implementation(libs.okhttp)
     implementation(libs.androidx.biometric)
     implementation(libs.kotlin.reflect)
