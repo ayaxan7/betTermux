@@ -521,7 +521,7 @@ class TerminalViewModel @Inject constructor(
                     }
                 }
 
-                "networkQuality" -> {
+                "networkquality" -> {
                     // Handle network quality testing command
                     val subCommand = tokens.getOrNull(1)
 
@@ -576,14 +576,55 @@ class TerminalViewModel @Inject constructor(
 
                         "help" -> {
                             val helpText = buildString {
-                                appendLine("◎ Network Quality Test Commands:")
-                                appendLine("════════════════════════════════════════")
-                                appendLine("→ networkquality start  - Start a network speed test")
-                                appendLine("◉ networkquality status - Show current test status and results")
-                                appendLine("▤ networkquality logs   - Show test logs")
-                                appendLine("? networkquality help   - Show this help message")
-                                appendLine("════════════════════════════════════════")
-                                appendLine("※ Pro tip: Run 'networkquality status' during a test to see real-time progress!")
+                                appendLine("╭─────────────────────────────────────────────────────────────╮")
+                                appendLine("│                    BetterMux Command Reference             │")
+                                appendLine("╰─────────────────────────────────────────────────────────────╯")
+                                appendLine()
+                                appendLine("FILE & DIRECTORY OPERATIONS:")
+                                appendLine("  ls                    - List files and directories in current location")
+                                appendLine("  cd <directory>        - Change to specified directory (use .. for parent)")
+                                appendLine("  pwd                   - Show current directory path")
+                                appendLine("  mkdir <name>          - Create a new directory")
+                                appendLine("  touch <filename>      - Create a new empty file")
+                                appendLine("  rm <file|dir>         - Delete specified file or directory")
+                                appendLine("  cat <filename>        - Display file contents (supports text and images)")
+                                appendLine()
+                                appendLine("FILE CONTENT OPERATIONS:")
+                                appendLine("  echo <text>           - Display text or write to file with > or >>")
+                                appendLine("  echo <text> > <file>  - Write text to file (overwrites existing content)")
+                                appendLine("  echo <text> >> <file> - Append text to file (preserves existing content)")
+                                appendLine()
+                                appendLine("SYSTEM & NAVIGATION:")
+                                appendLine("  clear                 - Clear the terminal screen")
+                                appendLine("  history               - Show command history")
+                                appendLine("  help                  - Display this help information")
+                                appendLine()
+                                appendLine("NETWORK DIAGNOSTICS:")
+                                appendLine("  networkquality start  - Run comprehensive network speed test")
+                                appendLine("  networkquality status - Show current test status and results")
+                                appendLine("  networkquality logs   - View detailed test logs")
+                                appendLine("  networkquality help   - Show network testing command help")
+                                appendLine()
+                                appendLine("ACCOUNT MANAGEMENT:")
+                                appendLine("  logout                - Sign out of current account")
+                                appendLine("  deleteaccount         - Permanently delete account and all data")
+                                appendLine()
+                                appendLine("TIPS & SHORTCUTS:")
+                                appendLine("  • Use arrow keys (↑/↓) to navigate command history")
+                                appendLine("  • Tab completion suggestions appear automatically")
+                                appendLine("  • AI-powered command suggestions via Gemini integration")
+                                appendLine("  • Use 'networkquality status' during tests for real-time progress")
+                                appendLine("  • File operations support both absolute and relative paths")
+                                appendLine()
+                                appendLine("EXAMPLES:")
+                                appendLine("  mkdir projects && cd projects")
+                                appendLine("  echo 'Hello World' > welcome.txt")
+                                appendLine("  cat welcome.txt")
+                                appendLine("  networkquality start")
+                                appendLine()
+                                appendLine("For more details on any command, try using it with common patterns")
+                                appendLine("or check the AI suggestions that appear as you type.")
+                                appendLine("NOTE: The AI just provides terminal commands in suggestions which means it is not aware of the application's limitations.")
                             }
                             TerminalEntry.Output(helpText, TerminalOutputType.Normal)
                         }

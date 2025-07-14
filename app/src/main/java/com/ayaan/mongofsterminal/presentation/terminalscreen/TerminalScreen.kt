@@ -72,17 +72,17 @@ fun TerminalScreen(
     LaunchedEffect(Unit) {
         SpeedcheckerSDK.askPermissions(androidContext)
     }
-    // Configure system bars
-    val systemUiController = rememberSystemUiController()
-    val terminalBackgroundColor = Color(0xFF121212) // Dark terminal background
-
-    DisposableEffect(systemUiController) {
-        // Make status bar transparent with dark icons
-        systemUiController.setSystemBarsColor(
-            color = Color.Black, darkIcons = false
-        )
-        onDispose {}
-    }
+//    // Configure system bars
+//    val systemUiController = rememberSystemUiController()
+//    val terminalBackgroundColor = Color(0xFF121212) // Dark terminal background
+//
+//    DisposableEffect(systemUiController) {
+//        // Make status bar transparent with dark icons
+//        systemUiController.setSystemBarsColor(
+//            color = Color.Black, darkIcons = false
+//        )
+//        onDispose {}
+//    }
 
     // Navigate to sign-in screen when user logs out
     LaunchedEffect(isLoggedOut) {
@@ -124,7 +124,7 @@ fun TerminalScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(terminalBackgroundColor)
+            .background(Color.Black)
     ) {
         Surface(
             modifier = Modifier
