@@ -3,6 +3,7 @@ package com.ayaan.mongofsterminal.di
 import com.ayaan.mongofsterminal.data.api.FileSystemApi
 import com.ayaan.mongofsterminal.data.api.GeminiApi
 import com.ayaan.mongofsterminal.data.repository.FileSystemRepository
+import com.ayaan.mongofsterminal.network.NetworkQualityManager
 import com.google.firebase.auth.FirebaseAuth
 import com.google.gson.GsonBuilder
 import dagger.Module
@@ -70,5 +71,11 @@ object NetworkModule {
     @Singleton
     fun provideGeminiApi(@Named("Gemini") retrofit: Retrofit): GeminiApi{
         return retrofit.create(GeminiApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideNetworkQualityManager(): NetworkQualityManager {
+        return NetworkQualityManager()
     }
 }

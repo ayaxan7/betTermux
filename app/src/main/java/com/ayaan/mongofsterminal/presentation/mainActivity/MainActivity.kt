@@ -25,9 +25,11 @@ class MainActivity : FragmentActivity() {
     @RequiresApi(Build.VERSION_CODES.P)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Initialize SpeedcheckerSDK
         SpeedcheckerSDK.init(this)
-        Log.d("MainActivity", "SpeedcheckerSDK initialized : ${SpeedcheckerSDK.getSDKState(this)}")
-//        enableEdgeToEdge()
+        Log.d("MainActivity", "SpeedcheckerSDK initialized: ${SpeedcheckerSDK.getSDKState(this)}")
+
         setContent {
             MongoFSTerminalTheme(darkTheme = false) {
                 val systemUiController = rememberSystemUiController()

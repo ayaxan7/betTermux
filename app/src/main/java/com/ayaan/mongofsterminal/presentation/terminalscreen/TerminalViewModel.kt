@@ -1,5 +1,6 @@
 package com.ayaan.mongofsterminal.presentation.terminalscreen
 
+import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -9,6 +10,7 @@ import com.ayaan.mongofsterminal.autocomplete.AutocompleteManager
 import com.ayaan.mongofsterminal.data.api.GeminiApi
 import com.ayaan.mongofsterminal.data.model.FileSystemRequest
 import com.ayaan.mongofsterminal.data.repository.FileSystemRepository
+import com.ayaan.mongofsterminal.network.NetworkQualityManager
 import com.ayaan.mongofsterminal.presentation.terminalscreen.components.data.UiFileSystemNode
 import com.ayaan.mongofsterminal.presentation.terminalscreen.model.FileNodeResponse
 import com.ayaan.mongofsterminal.presentation.terminalscreen.model.PathResolutionResponse
@@ -17,7 +19,9 @@ import com.ayaan.mongofsterminal.presentation.terminalscreen.model.TerminalOutpu
 import com.google.firebase.auth.FirebaseAuth
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.speedchecker.android.sdk.SpeedcheckerSDK
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.collections.get
@@ -27,6 +31,8 @@ class TerminalViewModel @Inject constructor(
     private val fileSystemRepository: FileSystemRepository, // Using Repository instead of direct API
     geminiApi: GeminiApi,
     private val firebaseAuth: FirebaseAuth,
+    val networkQualityManager: NetworkQualityManager,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
     val commandInput = mutableStateOf("")
     val commandHistory = mutableStateListOf<TerminalEntry>()
@@ -515,22 +521,116 @@ class TerminalViewModel @Inject constructor(
                     }
                 }
 
-//                "networkQuality" -> {
-//                    // Parse command options
-//                    val detailedMode = tokens.contains("--detailed") || tokens.contains("-d")
-//
-//                    try {
-//                        // Show initial message
-//                        val result = networkQualityManager.performNetworkTest(detailedMode)
-//                        return TerminalEntry.TextOutput(result)
-//                    } catch (e: Exception) {
-//                        Log.e("TerminalVM", "Network quality test failed", e)
-//                        return TerminalEntry.Output(
-//                            "Network quality test failed: ${e.message ?: "Unknown error"}",
-//                            TerminalOutputType.Error
-//                        )
-//                    }
-//                }
+                "networkQuality" -> {
+                    // Handle network quality testing command
+                    val subCommand = tokens.getOrNull(1)
+
+                    when (subCommand) {
+                        "start", null -> {
+                            // Start the network speed test
+                            try {
+                                networkQualityManager.startSpeedTest()
+
+                                // Start the speed test using the SDK - following reference implementation
+                                viewModelScope.launch {
+                                    try {
+                                        // Use SpeedTest.startTest instead of SpeedcheckerSDK.startTest
+                                        SpeedcheckerSDK.SpeedTest.setOnSpeedTestListener(networkQualityManager)
+                                        SpeedcheckerSDK.SpeedTest.startTest(context)
+                                    } catch (e: Exception) {
+                                        Log.e("TerminalVM", "Failed to start network test: ${e.message}", e)
+                                        commandHistory.add(TerminalEntry.Output("Failed to start network test: ${e.message}", TerminalOutputType.Error))
+                                    }
+                                }
+
+                                TerminalEntry.Output("Initializing network speed test...", TerminalOutputType.Normal)
+                            } catch (e: Exception) {
+                                Log.e("TerminalVM", "Error starting network test: ${e.message}", e)
+                                TerminalEntry.Output("Error: ${e.message}", TerminalOutputType.Error)
+                            }
+                        }
+
+                        "status" -> {
+                            // Show current test status with enhanced information
+                            val testState = networkQualityManager.testState.value
+                            if (testState.isRunning) {
+                                val statusText = buildString {
+                                    appendLine("Network Test Status: RUNNING")
+                                    appendLine("Current Phase: ${testState.currentPhase}")
+                                    appendLine("Progress: ${testState.progress}/${testState.progressMax}")
+                                    appendLine("Current Value: ${testState.currentTestValue}")
+                                    if (testState.trafficTestValue.isNotEmpty()) {
+                                        appendLine("Traffic: ${testState.trafficTestValue}")
+                                    }
+                                    if (testState.downloadSpeed > 0.0) {
+                                        appendLine("Download Speed: ${String.format("%.2f", testState.downloadSpeed)} Mbps")
+                                    }
+                                    if (testState.uploadSpeed > 0.0) {
+                                        appendLine("Upload Speed: ${String.format("%.2f", testState.uploadSpeed)} Mbps")
+                                    }
+                                    if (testState.ping > 0) {
+                                        appendLine("Ping: ${testState.ping} ms")
+                                    }
+                                    if (testState.jitter > 0) {
+                                        appendLine("Jitter: ${testState.jitter} ms")
+                                    }
+                                }
+                                TerminalEntry.Output(statusText, TerminalOutputType.Normal)
+                            } else if (testState.isCompleted) {
+                                if (testState.error != null) {
+                                    TerminalEntry.Output("Network Test Status: FAILED\nError: ${testState.error}", TerminalOutputType.Error)
+                                } else {
+                                    val resultsText = buildString {
+                                        appendLine("Network Test Status: COMPLETED")
+                                        appendLine("Server: ${testState.serverDomain}")
+                                        appendLine("Connection Type: ${testState.connectionType}")
+                                        appendLine("Download Speed: ${String.format("%.2f", testState.downloadSpeed)} Mbps")
+                                        appendLine("Upload Speed: ${String.format("%.2f", testState.uploadSpeed)} Mbps")
+                                        appendLine("Ping: ${testState.ping} ms")
+                                        appendLine("Jitter: ${testState.jitter} ms")
+                                        testState.packetLoss?.let {
+                                            appendLine("Packet Loss: ${String.format("%.2f", it)}%")
+                                        } ?: appendLine("Packet Loss: -")
+                                    }
+                                    TerminalEntry.Output(resultsText, TerminalOutputType.Normal)
+                                }
+                            } else {
+                                TerminalEntry.Output("Network Test Status: IDLE\nUse 'networkquality start' to begin a test", TerminalOutputType.Normal)
+                            }
+                        }
+
+                        "logs" -> {
+                            // Show test logs
+                            val testState = networkQualityManager.testState.value
+                            if (testState.logMessages.isNotEmpty()) {
+                                val logsText = buildString {
+                                    appendLine("Network Test Logs:")
+                                    testState.logMessages.take(20).forEach { log ->
+                                        appendLine(log)
+                                    }
+                                }
+                                TerminalEntry.Output(logsText, TerminalOutputType.Normal)
+                            } else {
+                                TerminalEntry.Output("No logs available", TerminalOutputType.Normal)
+                            }
+                        }
+
+                        "help" -> {
+                            val helpText = buildString {
+                                appendLine("Network Quality Test Commands:")
+                                appendLine("  networkquality start  - Start a network speed test")
+                                appendLine("  networkquality status - Show current test status and results")
+                                appendLine("  networkquality logs   - Show test logs")
+                                appendLine("  networkquality help   - Show this help message")
+                            }
+                            TerminalEntry.Output(helpText, TerminalOutputType.Normal)
+                        }
+
+                        else -> {
+                            TerminalEntry.Output("Unknown networkquality command: $subCommand\nUse 'networkquality help' for available commands", TerminalOutputType.Error)
+                        }
+                    }
+                }
 
                 // Add more commands as needed
                 else -> TerminalEntry.Output("Unknown command: ${tokens[0]}", TerminalOutputType.Error)
@@ -691,8 +791,3 @@ class TerminalViewModel @Inject constructor(
         }
     }
 }
-
-
-
-
-
