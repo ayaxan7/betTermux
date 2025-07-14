@@ -23,23 +23,32 @@ class SplashViewModel @Inject constructor(
 
     init {
         checkBackendHealth()
+        startProgressTimer()
     }
 
     fun setLoadingDots(dots: String) {
         loadingDots.value = dots
     }
 
+    private fun startProgressTimer() {
+        viewModelScope.launch {
+            while (!isBackendReady.value && connectionAttempts.value < 30) {
+                delay(2000)
+                if (!isBackendReady.value) {
+                    connectionAttempts.value++
+                    Log.d("SplashViewModel", "Progress timer - Connection attempts: ${connectionAttempts.value}")
+                }
+            }
+        }
+    }
+
     private fun checkBackendHealth() {
         viewModelScope.launch {
             while (!isBackendReady.value) {
                 try {
-                    connectionAttempts.value++
                     Log.d("SplashViewModel", "Checking backend health - Attempt #${connectionAttempts.value}")
-
-                    // Use the FileSystemApi's checkHealth endpoint which now returns a JSON response
                     val response = fileSystemApi.checkHealth()
                     Log.d("SplashViewModel", "Response from backend: ${response.status}")
-                    // Check if the status in the response is "OK"
                     if (response.status == "OK") {
                         Log.d("SplashViewModel", "Backend is ready! Status: ${response.status}")
                         isBackendReady.value = true
@@ -50,8 +59,6 @@ class SplashViewModel @Inject constructor(
                 } catch (e: Exception) {
                     Log.e("SplashViewModel", "Error checking backend health: ${e.message}")
                 }
-
-                // Retry with exponential backoff (capped at 3 seconds)
                 val delayTime = minOf(1000L * (1 shl minOf(connectionAttempts.value / 2, 2)), 3000L)
                 delay(delayTime)
             }

@@ -83,7 +83,6 @@ dependencies {
     implementation(libs.kotlin.reflect)
     implementation(libs.accompanist.systemuicontroller)
     implementation(libs.android.sdk)
-    implementation(libs.oksse)
 
     // Testing
     testImplementation(libs.junit)

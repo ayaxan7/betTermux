@@ -18,6 +18,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.ayaan.mongofsterminal.navigation.Route
+import com.ayaan.mongofsterminal.presentation.splashscreen.components.AnimatedVisibility
+import com.ayaan.mongofsterminal.presentation.splashscreen.components.TerminalProgressBar
 import kotlinx.coroutines.delay
 
 @Composable
@@ -223,49 +225,5 @@ fun SplashScreen(
     }
 }
 
-@Composable
-fun AnimatedVisibility(
-    visible: Boolean,
-    content: @Composable () -> Unit
-) {
-    val alpha by animateFloatAsState(
-        targetValue = if (visible) 1f else 0f,
-        animationSpec = tween(durationMillis = 500)
-    )
 
-    Box(modifier = Modifier.alpha(alpha)) {
-        content()
-    }
-}
 
-@Composable
-fun TerminalProgressBar(
-    progress: Float,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier
-            .height(20.dp)
-            .background(Color(0xFF1A1A1A), MaterialTheme.shapes.small)
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxHeight()
-                .fillMaxWidth(progress)
-                .background(Color(0xFF4EB839))
-        )
-
-        // Progress percentage
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "${(progress * 100).toInt()}%",
-                color = Color.White,
-                fontFamily = FontFamily.Monospace,
-                fontSize = 12.sp
-            )
-        }
-    }
-}
