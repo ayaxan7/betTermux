@@ -1,6 +1,7 @@
 package com.ayaan.mongofsterminal.network
 
 import android.util.Log
+import com.ayaan.mongofsterminal.data.networktester.NetworkTestState
 import com.speedchecker.android.sdk.Public.SpeedTestListener
 import com.speedchecker.android.sdk.Public.SpeedTestResult
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -8,25 +9,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.text.SimpleDateFormat
 import java.util.*
-
-data class NetworkTestState(
-    val isRunning: Boolean = false,
-    val currentPhase: String = "",
-    val downloadSpeed: Double = 0.0,
-    val uploadSpeed: Double = 0.0,
-    val ping: Int = 0,
-    val jitter: Int = 0,
-    val progress: Int = 0,
-    val progressMax: Int = 240, // Following the reference implementation
-    val error: String? = null,
-    val isCompleted: Boolean = false,
-    val serverDomain: String = "",
-    val connectionType: String = "",
-    val packetLoss: Double? = null,
-    val currentTestValue: String = "",
-    val trafficTestValue: String = "",
-    val logMessages: List<String> = emptyList()
-)
 
 class NetworkQualityManager: SpeedTestListener {
     private val _testState = MutableStateFlow(NetworkTestState())
@@ -188,7 +170,7 @@ class NetworkQualityManager: SpeedTestListener {
     override fun onUploadTestProgress(progress: Int, instantSpeed: Double, avgSpeed: Double) {
         Log.d(tag, "Upload progress: $progress%, Instant: $instantSpeed Mbps, Avg: $avgSpeed Mbps")
         _testState.value = _testState.value.copy(
-            progress = 140 + progress, // Following reference: 140 base + progress
+            progress = 140 + progress,
             uploadSpeed = avgSpeed,
             currentPhase = "Upload",
             currentTestValue = "${String.format("%.2f", avgSpeed)} Mb/s",

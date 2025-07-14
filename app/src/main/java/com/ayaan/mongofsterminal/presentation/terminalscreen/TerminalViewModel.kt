@@ -539,64 +539,21 @@ class TerminalViewModel @Inject constructor(
                                         SpeedcheckerSDK.SpeedTest.startTest(context)
                                     } catch (e: Exception) {
                                         Log.e("TerminalVM", "Failed to start network test: ${e.message}", e)
-                                        commandHistory.add(TerminalEntry.Output("Failed to start network test: ${e.message}", TerminalOutputType.Error))
+                                        commandHistory.add(TerminalEntry.Output("✗ Failed to start network test: ${e.message}", TerminalOutputType.Error))
                                     }
                                 }
 
-                                TerminalEntry.Output("Initializing network speed test...", TerminalOutputType.Normal)
+                                TerminalEntry.Output("→ Initializing network speed test...", TerminalOutputType.Normal)
                             } catch (e: Exception) {
                                 Log.e("TerminalVM", "Error starting network test: ${e.message}", e)
-                                TerminalEntry.Output("Error: ${e.message}", TerminalOutputType.Error)
+                                TerminalEntry.Output("✗ Error: ${e.message}", TerminalOutputType.Error)
                             }
                         }
 
                         "status" -> {
-                            // Show current test status with enhanced information
+                            // Show current test status with visual component
                             val testState = networkQualityManager.testState.value
-                            if (testState.isRunning) {
-                                val statusText = buildString {
-                                    appendLine("Network Test Status: RUNNING")
-                                    appendLine("Current Phase: ${testState.currentPhase}")
-                                    appendLine("Progress: ${testState.progress}/${testState.progressMax}")
-                                    appendLine("Current Value: ${testState.currentTestValue}")
-                                    if (testState.trafficTestValue.isNotEmpty()) {
-                                        appendLine("Traffic: ${testState.trafficTestValue}")
-                                    }
-                                    if (testState.downloadSpeed > 0.0) {
-                                        appendLine("Download Speed: ${String.format("%.2f", testState.downloadSpeed)} Mbps")
-                                    }
-                                    if (testState.uploadSpeed > 0.0) {
-                                        appendLine("Upload Speed: ${String.format("%.2f", testState.uploadSpeed)} Mbps")
-                                    }
-                                    if (testState.ping > 0) {
-                                        appendLine("Ping: ${testState.ping} ms")
-                                    }
-                                    if (testState.jitter > 0) {
-                                        appendLine("Jitter: ${testState.jitter} ms")
-                                    }
-                                }
-                                TerminalEntry.Output(statusText, TerminalOutputType.Normal)
-                            } else if (testState.isCompleted) {
-                                if (testState.error != null) {
-                                    TerminalEntry.Output("Network Test Status: FAILED\nError: ${testState.error}", TerminalOutputType.Error)
-                                } else {
-                                    val resultsText = buildString {
-                                        appendLine("Network Test Status: COMPLETED")
-                                        appendLine("Server: ${testState.serverDomain}")
-                                        appendLine("Connection Type: ${testState.connectionType}")
-                                        appendLine("Download Speed: ${String.format("%.2f", testState.downloadSpeed)} Mbps")
-                                        appendLine("Upload Speed: ${String.format("%.2f", testState.uploadSpeed)} Mbps")
-                                        appendLine("Ping: ${testState.ping} ms")
-                                        appendLine("Jitter: ${testState.jitter} ms")
-                                        testState.packetLoss?.let {
-                                            appendLine("Packet Loss: ${String.format("%.2f", it)}%")
-                                        } ?: appendLine("Packet Loss: -")
-                                    }
-                                    TerminalEntry.Output(resultsText, TerminalOutputType.Normal)
-                                }
-                            } else {
-                                TerminalEntry.Output("Network Test Status: IDLE\nUse 'networkquality start' to begin a test", TerminalOutputType.Normal)
-                            }
+                            TerminalEntry.NetworkQualityOutput(testState)
                         }
 
                         "logs" -> {
@@ -604,30 +561,35 @@ class TerminalViewModel @Inject constructor(
                             val testState = networkQualityManager.testState.value
                             if (testState.logMessages.isNotEmpty()) {
                                 val logsText = buildString {
-                                    appendLine("Network Test Logs:")
+                                    appendLine("▤ Network Test Logs:")
+                                    appendLine("════════════════════════════════════════")
                                     testState.logMessages.take(20).forEach { log ->
-                                        appendLine(log)
+                                        appendLine("► $log")
                                     }
+                                    appendLine("════════════════════════════════════════")
                                 }
                                 TerminalEntry.Output(logsText, TerminalOutputType.Normal)
                             } else {
-                                TerminalEntry.Output("No logs available", TerminalOutputType.Normal)
+                                TerminalEntry.Output("▤ No logs available", TerminalOutputType.Normal)
                             }
                         }
 
                         "help" -> {
                             val helpText = buildString {
-                                appendLine("Network Quality Test Commands:")
-                                appendLine("  networkquality start  - Start a network speed test")
-                                appendLine("  networkquality status - Show current test status and results")
-                                appendLine("  networkquality logs   - Show test logs")
-                                appendLine("  networkquality help   - Show this help message")
+                                appendLine("◎ Network Quality Test Commands:")
+                                appendLine("════════════════════════════════════════")
+                                appendLine("→ networkquality start  - Start a network speed test")
+                                appendLine("◉ networkquality status - Show current test status and results")
+                                appendLine("▤ networkquality logs   - Show test logs")
+                                appendLine("? networkquality help   - Show this help message")
+                                appendLine("════════════════════════════════════════")
+                                appendLine("※ Pro tip: Run 'networkquality status' during a test to see real-time progress!")
                             }
                             TerminalEntry.Output(helpText, TerminalOutputType.Normal)
                         }
 
                         else -> {
-                            TerminalEntry.Output("Unknown networkquality command: $subCommand\nUse 'networkquality help' for available commands", TerminalOutputType.Error)
+                            TerminalEntry.Output("✗ Unknown networkquality command: $subCommand\n? Use 'networkquality help' for available commands", TerminalOutputType.Error)
                         }
                     }
                 }
@@ -788,6 +750,61 @@ class TerminalViewModel @Inject constructor(
         val entry = commandHistory[historyIndex]
         if (entry is TerminalEntry.Prompt) {
             commandInput.value = entry.command
+        }
+    }
+
+    // Helper functions for network quality display
+    private fun generateProgressBar(current: Int, max: Int, width: Int = 30): String {
+        val percentage = (current.toFloat() / max.toFloat() * 100).toInt().coerceIn(0, 100)
+        val filled = (current.toFloat() / max.toFloat() * width).toInt().coerceIn(0, width)
+        val empty = width - filled
+
+        return buildString {
+            append("▐")
+            repeat(filled) { append("█") }
+            repeat(empty) { append("░") }
+            append("▌ $percentage%")
+        }
+    }
+
+    private fun getSpeedRating(speedMbps: Double): String {
+        return when {
+            speedMbps >= 100 -> "★ Excellent"
+            speedMbps >= 50 -> "▲ Very Good"
+            speedMbps >= 25 -> "● Good"
+            speedMbps >= 10 -> "○ Fair"
+            speedMbps >= 5 -> "▽ Slow"
+            else -> "✗ Very Slow"
+        }
+    }
+
+    private fun getPingRating(pingMs: Int): String {
+        return when {
+            pingMs <= 20 -> "★ Excellent"
+            pingMs <= 50 -> "● Good"
+            pingMs <= 100 -> "○ Fair"
+            pingMs <= 200 -> "▽ Poor"
+            else -> "✗ Very Poor"
+        }
+    }
+
+    private fun getJitterRating(jitterMs: Int): String {
+        return when {
+            jitterMs <= 5 -> "★ Excellent"
+            jitterMs <= 15 -> "● Good"
+            jitterMs <= 30 -> "○ Fair"
+            jitterMs <= 50 -> "▽ Poor"
+            else -> "✗ Very Poor"
+        }
+    }
+
+    private fun getPacketLossRating(packetLoss: Double): String {
+        return when {
+            packetLoss == 0.0 -> "★ Perfect"
+            packetLoss <= 1.0 -> "● Good"
+            packetLoss <= 3.0 -> "○ Fair"
+            packetLoss <= 5.0 -> "▽ Poor"
+            else -> "✗ Very Poor"
         }
     }
 }

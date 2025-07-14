@@ -2,7 +2,6 @@ package com.ayaan.mongofsterminal.autocomplete
 
 import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -11,6 +10,7 @@ import com.ayaan.mongofsterminal.data.api.GeminiApi
 import com.ayaan.mongofsterminal.data.api.GeminiRequest
 import com.ayaan.mongofsterminal.data.api.GeminiContent
 import com.ayaan.mongofsterminal.data.api.GeminiPart
+import kotlin.coroutines.cancellation.CancellationException
 
 class AutocompleteManager(
     private val geminiApi: GeminiApi,
@@ -65,7 +65,7 @@ class AutocompleteManager(
                     suggestions.clear()
                     suggestions.addAll(cleanedSuggestions)
                 } catch (e: Exception) {
-                    if (e is kotlinx.coroutines.CancellationException) {
+                    if (e is CancellationException) {
                         Log.d("GeminiIntegration", "API call cancelled for: $input")
                     } else {
                         Log.e("GeminiIntegration", "Error fetching suggestions: ", e)

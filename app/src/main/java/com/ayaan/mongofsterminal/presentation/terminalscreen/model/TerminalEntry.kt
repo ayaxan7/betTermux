@@ -1,5 +1,6 @@
 package com.ayaan.mongofsterminal.presentation.terminalscreen.model
 
+import com.ayaan.mongofsterminal.data.networktester.NetworkTestState
 import com.ayaan.mongofsterminal.presentation.terminalscreen.components.data.UiFileSystemNode
 
 sealed class TerminalEntry {
@@ -8,4 +9,5 @@ sealed class TerminalEntry {
     data class Listing(val items: List<UiFileSystemNode>) : TerminalEntry()
     data class TextOutput(val text: String) : TerminalEntry()
     data class ImageOutput(val base64Data: String) : TerminalEntry()
+    data class NetworkQualityOutput(val testState: NetworkTestState) : TerminalEntry()
 }

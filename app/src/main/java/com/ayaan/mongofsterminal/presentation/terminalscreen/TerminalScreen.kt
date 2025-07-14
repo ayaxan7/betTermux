@@ -55,6 +55,7 @@ import androidx.navigation.NavController
 import com.ayaan.mongofsterminal.navigation.Route
 import com.ayaan.mongofsterminal.presentation.terminalscreen.components.DirectoryEntryLine
 import com.ayaan.mongofsterminal.presentation.terminalscreen.components.DisplayImageFromBase64
+import com.ayaan.mongofsterminal.presentation.terminalscreen.components.NetworkQualityDisplay
 import com.ayaan.mongofsterminal.presentation.terminalscreen.components.TerminalOutputLine
 import com.ayaan.mongofsterminal.presentation.terminalscreen.components.TerminalPromptLine
 import com.ayaan.mongofsterminal.presentation.terminalscreen.model.TerminalEntry
@@ -246,6 +247,13 @@ fun TerminalScreen(
                                         modifier = Modifier.padding(4.dp)
                                     )
                                 }
+                            }
+
+                            is TerminalEntry.NetworkQualityOutput -> {
+                                NetworkQualityDisplay(
+                                    testState = entry.testState,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
                             }
                         }
                     }
