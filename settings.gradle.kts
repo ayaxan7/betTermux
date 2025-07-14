@@ -16,6 +16,15 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven { url = uri("https://jitpack.io") }
+        maven {
+            url =uri ("https://maven.speedcheckerapi.com/artifactory/libs-release")
+            credentials {
+                username = providers.gradleProperty("speedchecker.username").getOrElse("defaultUsername")
+                password = providers.gradleProperty("speedchecker.password").getOrElse("defaultPassword")
+            }
+        }
+        maven { url = uri("https://repo.maven.apache.org/maven2") }
     }
 }
 

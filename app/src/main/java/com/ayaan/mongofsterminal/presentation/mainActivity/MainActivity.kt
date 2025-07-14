@@ -2,6 +2,7 @@ package com.ayaan.mongofsterminal.presentation.mainActivity
 
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.WindowInsets
@@ -17,12 +18,15 @@ import com.ayaan.mongofsterminal.navigation.AppNavigation
 import com.ayaan.mongofsterminal.ui.theme.MongoFSTerminalTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import dagger.hilt.android.AndroidEntryPoint
+import com.speedchecker.android.sdk.SpeedcheckerSDK
 
 @AndroidEntryPoint
 class MainActivity : FragmentActivity() {
     @RequiresApi(Build.VERSION_CODES.P)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        SpeedcheckerSDK.init(this)
+        Log.d("MainActivity", "SpeedcheckerSDK initialized : ${SpeedcheckerSDK.getSDKState(this)}")
 //        enableEdgeToEdge()
         setContent {
             MongoFSTerminalTheme(darkTheme = false) {

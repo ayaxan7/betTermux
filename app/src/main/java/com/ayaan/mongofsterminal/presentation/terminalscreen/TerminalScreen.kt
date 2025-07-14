@@ -1,6 +1,7 @@
 package com.ayaan.mongofsterminal.presentation.terminalscreen
 
 import android.view.KeyEvent
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -56,7 +57,9 @@ import com.ayaan.mongofsterminal.presentation.terminalscreen.components.Director
 import com.ayaan.mongofsterminal.presentation.terminalscreen.components.DisplayImageFromBase64
 import com.ayaan.mongofsterminal.presentation.terminalscreen.components.TerminalOutputLine
 import com.ayaan.mongofsterminal.presentation.terminalscreen.components.TerminalPromptLine
+import com.ayaan.mongofsterminal.presentation.terminalscreen.model.TerminalEntry
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.speedchecker.android.sdk.SpeedcheckerSDK
 
 @Composable
 fun TerminalScreen(
@@ -64,7 +67,10 @@ fun TerminalScreen(
 ) {
     val isLoggedOut by viewModel.isLoggedOut
     val isAccountDeleted by viewModel.isAccountDeleted
-
+    val androidContext= LocalActivity.current
+    LaunchedEffect(Unit) {
+        SpeedcheckerSDK.askPermissions(androidContext)
+    }
     // Configure system bars
     val systemUiController = rememberSystemUiController()
     val terminalBackgroundColor = Color(0xFF121212) // Dark terminal background

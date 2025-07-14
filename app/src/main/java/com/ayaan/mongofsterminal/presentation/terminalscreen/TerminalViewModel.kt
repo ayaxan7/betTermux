@@ -10,6 +10,10 @@ import com.ayaan.mongofsterminal.data.api.GeminiApi
 import com.ayaan.mongofsterminal.data.model.FileSystemRequest
 import com.ayaan.mongofsterminal.data.repository.FileSystemRepository
 import com.ayaan.mongofsterminal.presentation.terminalscreen.components.data.UiFileSystemNode
+import com.ayaan.mongofsterminal.presentation.terminalscreen.model.FileNodeResponse
+import com.ayaan.mongofsterminal.presentation.terminalscreen.model.PathResolutionResponse
+import com.ayaan.mongofsterminal.presentation.terminalscreen.model.TerminalEntry
+import com.ayaan.mongofsterminal.presentation.terminalscreen.model.TerminalOutputType
 import com.google.firebase.auth.FirebaseAuth
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -22,7 +26,7 @@ import kotlin.collections.get
 class TerminalViewModel @Inject constructor(
     private val fileSystemRepository: FileSystemRepository, // Using Repository instead of direct API
     geminiApi: GeminiApi,
-    private val firebaseAuth: FirebaseAuth
+    private val firebaseAuth: FirebaseAuth,
 ) : ViewModel() {
     val commandInput = mutableStateOf("")
     val commandHistory = mutableStateListOf<TerminalEntry>()
@@ -511,6 +515,23 @@ class TerminalViewModel @Inject constructor(
                     }
                 }
 
+//                "networkQuality" -> {
+//                    // Parse command options
+//                    val detailedMode = tokens.contains("--detailed") || tokens.contains("-d")
+//
+//                    try {
+//                        // Show initial message
+//                        val result = networkQualityManager.performNetworkTest(detailedMode)
+//                        return TerminalEntry.TextOutput(result)
+//                    } catch (e: Exception) {
+//                        Log.e("TerminalVM", "Network quality test failed", e)
+//                        return TerminalEntry.Output(
+//                            "Network quality test failed: ${e.message ?: "Unknown error"}",
+//                            TerminalOutputType.Error
+//                        )
+//                    }
+//                }
+
                 // Add more commands as needed
                 else -> TerminalEntry.Output("Unknown command: ${tokens[0]}", TerminalOutputType.Error)
             }
@@ -671,17 +692,7 @@ class TerminalViewModel @Inject constructor(
     }
 }
 
-sealed class TerminalEntry {
-    data class Prompt(val command: String, val cwd: String) : TerminalEntry()
-    data class Output(val text: String, val type: TerminalOutputType) : TerminalEntry()
-    data class Listing(val items: List<UiFileSystemNode>) : TerminalEntry()
-    data class TextOutput(val text: String) : TerminalEntry()
-    data class ImageOutput(val base64Data: String) : TerminalEntry()
-}
 
-enum class TerminalOutputType {
-    Normal, Error, Directory, File
-}
 
-data class PathResolutionResponse(val id: String, val path: String)
-data class FileNodeResponse(val name: String, val content: String, val mimeType: String)
+
+
