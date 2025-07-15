@@ -33,7 +33,6 @@ class MainActivity : FragmentActivity() {
         Log.d("MainActivity", "SpeedcheckerSDK initialized: ${SpeedcheckerSDK.getSDKState(this)}")
         setContent {
             MongoFSTerminalTheme(darkTheme = false) {
-
                 Scaffold(
                     modifier = Modifier.fillMaxSize().padding(top =22.dp),
 //                    contentWindowInsets = WindowInsets.safeDrawing
