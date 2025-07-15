@@ -35,8 +35,9 @@ BetterMux is an Android terminal application designed to provide a better comman
 
 1. Clone this repository
 2. Open the project in Android Studio
-3. Sync Gradle dependencies
-4. Run the app on an emulator or physical device
+3. Add the Gemini api key as "GEMINI_API_KEY" in your local.properties file
+4. Sync Gradle dependencies
+5. Run the app on an emulator or physical device
 
 ```bash
 git clone https://github.com/yourusername/bettermux.git
@@ -50,12 +51,10 @@ cd bettermux
   - **navigation/**: App navigation components
   - **presentation/**: UI screens and components
     - **auth/**: Authentication screens
+    - **splashscreen/**: activates the free backend service on render
     - **terminalscreen/**: Terminal UI and functionality
     - **fingerPrintScreen/**: Biometric authentication
 
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-## Acknowledgements
-
-- List any libraries, tools, or resources that helped you build this project
