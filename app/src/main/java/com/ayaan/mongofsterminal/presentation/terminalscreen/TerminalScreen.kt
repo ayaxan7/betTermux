@@ -1,7 +1,10 @@
 package com.ayaan.mongofsterminal.presentation.terminalscreen
 
+import android.net.Uri
 import android.view.KeyEvent
 import androidx.activity.compose.LocalActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -120,6 +123,20 @@ fun TerminalScreen(
             Color(0xFF1E1E1E), Color(0xFF121212)
         )
     )
+
+    // File picker launcher
+    val filePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+        onResult = { uri: Uri? ->
+            viewModel.onFilePicked(uri)
+        }
+    )
+
+    // Register file picker launcher with ViewModel
+    LaunchedEffect(Unit) {
+        SpeedcheckerSDK.askPermissions(androidContext)
+        viewModel.registerFilePickerLauncher(filePickerLauncher)
+    }
 
     Box(
         modifier = Modifier

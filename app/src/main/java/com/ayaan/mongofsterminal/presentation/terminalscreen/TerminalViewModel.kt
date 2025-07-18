@@ -1,7 +1,10 @@
 package com.ayaan.mongofsterminal.presentation.terminalscreen
 
 import android.content.Context
+import android.net.Uri
 import android.util.Log
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -16,6 +19,7 @@ import com.ayaan.mongofsterminal.presentation.terminalscreen.model.FileNodeRespo
 import com.ayaan.mongofsterminal.presentation.terminalscreen.model.PathResolutionResponse
 import com.ayaan.mongofsterminal.presentation.terminalscreen.model.TerminalEntry
 import com.ayaan.mongofsterminal.presentation.terminalscreen.model.TerminalOutputType
+import com.ayaan.mongofsterminal.utils.FileUtils
 import com.google.firebase.auth.FirebaseAuth
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -53,6 +57,12 @@ class TerminalViewModel @Inject constructor(
     // AutocompleteManager instance
     val autocompleteManager = AutocompleteManager(geminiApi, viewModelScope)
     val suggestions get() = autocompleteManager.suggestions
+
+    // File picker launcher for selecting files to upload
+    private lateinit var filePickerLauncher: ActivityResultLauncher<String>
+
+    // Variable to store the target filename for upload
+    private var uploadTargetFilename: String? = null
 
     init {
         // Set username from Firebase display name or email when available
@@ -634,6 +644,21 @@ class TerminalViewModel @Inject constructor(
                     }
                 }
 
+                "upload" -> {
+                    // Check if filename parameter was provided
+                    val filename = tokens.getOrNull(1)
+                    if (filename == null) {
+                        return TerminalEntry.Output("Usage: upload <filename>", TerminalOutputType.Error)
+                    }
+
+                    // Store the target filename to use when file is selected
+                    uploadTargetFilename = filename
+
+                    // Launch the file picker to select a file for upload
+                    filePickerLauncher.launch("*/*")
+                    return TerminalEntry.Output("→ Waiting for file selection...", TerminalOutputType.Normal)
+                }
+
                 // Add more commands as needed
                 else -> TerminalEntry.Output("Unknown command: ${tokens[0]}", TerminalOutputType.Error)
             }
@@ -845,6 +870,80 @@ class TerminalViewModel @Inject constructor(
             packetLoss <= 3.0 -> "○ Fair"
             packetLoss <= 5.0 -> "▽ Poor"
             else -> "✗ Very Poor"
+        }
+    }
+
+    // Initialize the file picker launcher
+    fun registerFilePickerLauncher(launcher: ActivityResultLauncher<String>) {
+        filePickerLauncher = launcher
+    }
+
+    // Handle the result of the file picker
+    fun onFilePicked(uri: Uri?) {
+        if (uri == null) {
+            // No file was picked
+            commandHistory.add(TerminalEntry.Output("⚠ File selection cancelled", TerminalOutputType.Error))
+            isLoading.value = false
+            uploadTargetFilename = null
+            return
+        }
+
+        viewModelScope.launch {
+            try {
+                isLoading.value = true
+
+                // Get file info - use the original file name only for display
+                val originalFileName = FileUtils.getFileName(context, uri)
+                val mimeType = FileUtils.getMimeType(context, uri)
+                val fileSize = FileUtils.getReadableFileSize(context, uri)
+
+                // Use the specified target filename from the command
+                val targetFileName = uploadTargetFilename ?: originalFileName
+
+                // Show processing message
+                commandHistory.add(TerminalEntry.Output(
+                    "→ Processing file: $originalFileName ($mimeType, $fileSize)...",
+                    TerminalOutputType.Normal
+                ))
+
+                // Read file content based on its type
+                val (fileContent, isBase64) = FileUtils.getFileContent(context, uri, mimeType)
+
+                // Create request payload with the target filename
+                val req = FileSystemRequest(
+                    action = "createFileNode",
+                    name = targetFileName,
+                    parentId = workingDir.value,
+                    content = fileContent,
+                    mimeType = mimeType
+                )
+
+                // Send request to API
+                val res = fileSystemRepository.performAction(req)
+
+                Log.d("TerminalVM", "Upload response: $res")
+
+                if (res.success) {
+                    commandHistory.add(TerminalEntry.Output(
+                        "✓ File uploaded successfully as '$targetFileName' to ${currentPathDisplay.value}",
+                        TerminalOutputType.Normal
+                    ))
+                } else {
+                    commandHistory.add(TerminalEntry.Output(
+                        "✗ Upload failed: ${res.error ?: "Unknown error"}",
+                        TerminalOutputType.Error
+                    ))
+                }
+            } catch (e: Exception) {
+                Log.e("TerminalVM", "Error uploading file", e)
+                commandHistory.add(TerminalEntry.Output(
+                    "✗ Error: ${e.message}",
+                    TerminalOutputType.Error
+                ))
+            } finally {
+                isLoading.value = false
+                uploadTargetFilename = null
+            }
         }
     }
 }
