@@ -41,6 +41,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.ayaan.mongofsterminal.navigation.Route
+import com.ayaan.mongofsterminal.presentation.auth.components.AuthScreenFooter
+import com.ayaan.mongofsterminal.presentation.auth.components.GitHubSignInButton
 import com.ayaan.mongofsterminal.presentation.auth.components.GoogleSignInButton
 import com.ayaan.mongofsterminal.presentation.auth.components.TerminalTextField
 import com.ayaan.mongofsterminal.presentation.auth.signinscreen.SignInViewModel
@@ -240,6 +242,12 @@ fun SignUpScreen(
                     launcher = launcher,
                     navController = navController
                 )
+                // GitHub Sign In Button
+                GitHubSignInButton(
+                    context = context,
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    navController = navController
+                )
             }
             // Sign up button
             Button(
@@ -300,13 +308,7 @@ fun SignUpScreen(
 
             // Terminal footer
             Spacer(modifier = Modifier.weight(1f))
-            Text(
-                text = "└─[~ ]$ _",
-                color = Color(0xFF4EB839),
-                fontFamily = FontFamily.Monospace,
-                fontSize = 16.sp,
-                modifier = Modifier.padding(top = 16.dp)
-            )
+            AuthScreenFooter()
         }
     }
 }

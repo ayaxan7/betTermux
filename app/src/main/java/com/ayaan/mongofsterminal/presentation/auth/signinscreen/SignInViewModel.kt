@@ -8,6 +8,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ayaan.mongofsterminal.utils.GoogleSignInUtils
+import com.ayaan.mongofsterminal.utils.GitHubSignInUtils
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
@@ -19,7 +20,8 @@ import javax.inject.Inject
 @HiltViewModel
 class SignInViewModel @Inject constructor(
     private val firebaseAuth: FirebaseAuth,
-    private val googleSignInUtils: GoogleSignInUtils
+    private val googleSignInUtils: GoogleSignInUtils,
+    private val gitHubSignInUtils: GitHubSignInUtils
 ) : ViewModel() {
 
     // UI state
@@ -45,7 +47,7 @@ class SignInViewModel @Inject constructor(
                 errorMessage.value = null
 
                 // Validate inputs
-                if (email.value.isBlank() || password.value.isBlank()) {
+                if (email.value.isEmpty() || password.value.isBlank()) {
                     errorMessage.value = "Email and password cannot be empty"
                     isLoading.value = false
                     return@launch
@@ -84,6 +86,19 @@ class SignInViewModel @Inject constructor(
             scope = viewModelScope,
             launcher = launcher,
             login = login
+        )
+    }
+
+    fun handleGitHubLogin(
+        context: Context,
+        login: () -> Unit,
+        onError: (String) -> Unit = {}
+    ) {
+        gitHubSignInUtils.doGitHubSignIn(
+            context = context,
+            scope = viewModelScope,
+            login = login,
+            onError = onError
         )
     }
 }
