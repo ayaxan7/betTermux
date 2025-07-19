@@ -1,5 +1,7 @@
 package com.ayaan.mongofsterminal.presentation.auth.signupscreen
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -24,11 +26,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -37,13 +41,17 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.ayaan.mongofsterminal.navigation.Route
+import com.ayaan.mongofsterminal.presentation.auth.components.GoogleSignInButton
 import com.ayaan.mongofsterminal.presentation.auth.components.TerminalTextField
+import com.ayaan.mongofsterminal.presentation.auth.signinscreen.SignInViewModel
+import com.ayaan.mongofsterminal.utils.GoogleSignInUtils
 import kotlinx.coroutines.delay
 
 @Composable
 fun SignUpScreen(
     navController: NavController,
-    viewModel: SignUpViewModel = hiltViewModel()
+    viewModel: SignUpViewModel = hiltViewModel(),
+    loginViewModel: SignInViewModel=hiltViewModel()
 ) {
     // Access individual state properties directly
     val email = viewModel.email.value
@@ -207,7 +215,32 @@ fun SignUpScreen(
                         .alpha(alpha)
                 )
             }
+            val context= LocalContext.current
 
+            val launcher = rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) {
+                loginViewModel.handleGoogleLogin(
+                    context = context,
+                    launcher = null,
+                    login = {
+                        navController.navigate(Route.TerminalScreen.route) {
+                            popUpTo(Route.SignInScreen.route) { inclusive = true }
+                        }
+                    }
+                )
+
+            }
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                GoogleSignInButton(
+                    context = context,
+                    modifier = Modifier,
+                    launcher = launcher,
+                    navController = navController
+                )
+            }
             // Sign up button
             Button(
                 onClick = {

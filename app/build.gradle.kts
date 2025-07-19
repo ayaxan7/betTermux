@@ -17,7 +17,7 @@ val localProperties = Properties().apply {
     }
 }
 val geminiApiKey = localProperties.getProperty("GEMINI_API_KEY") ?: "MISSING_API_KEY"
-
+val oauthClientId= localProperties.getProperty("oauth_client_id") ?: "MISSING_OAUTH_CLIENT_ID"
 android {
     namespace = "com.ayaan.mongofsterminal"
     compileSdk = 35
@@ -29,6 +29,7 @@ android {
         versionCode = 1
         versionName = "1.0"
         buildConfigField("String", "GEMINI_API_KEY", "\"$geminiApiKey\"")
+        buildConfigField("String", "OAUTH_CLIENT_ID", "\"$oauthClientId\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -98,4 +99,12 @@ dependencies {
     kspAndroidTest(libs.google.hilt.compiler)
     testImplementation(libs.dagger.hilt.android.testing)
     kspTest(libs.google.hilt.compiler)
+    implementation (libs.androidx.credentials)
+    implementation( libs.androidx.credentials.play.services.auth)
+    implementation (libs.googleid)
+    implementation(platform("com.google.firebase:firebase-bom:33.16.0"))
+    implementation("com.google.firebase:firebase-auth-ktx:22.3.0")
+    implementation("com.google.android.gms:play-services-base:18.7.2")
+    implementation("com.google.android.gms:play-services-auth:21.3.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.10.2")
 }

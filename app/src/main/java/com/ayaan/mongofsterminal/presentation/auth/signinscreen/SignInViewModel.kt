@@ -1,8 +1,13 @@
 package com.ayaan.mongofsterminal.presentation.auth.signinscreen
 
+import android.content.Context
+import android.content.Intent
+import androidx.activity.compose.ManagedActivityResultLauncher
+import androidx.activity.result.ActivityResult
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ayaan.mongofsterminal.utils.GoogleSignInUtils
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
@@ -13,7 +18,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SignInViewModel @Inject constructor(
-    private val firebaseAuth: FirebaseAuth
+    private val firebaseAuth: FirebaseAuth,
+    private val googleSignInUtils: GoogleSignInUtils
 ) : ViewModel() {
 
     // UI state
@@ -68,13 +74,16 @@ class SignInViewModel @Inject constructor(
         }
     }
 
-    // Check if user is already signed in
-    fun checkCurrentUser(onUserFound: () -> Unit) {
-        if (firebaseAuth.currentUser != null) {
-            onUserFound()
-        }
-    }
-    fun logout(){
-        firebaseAuth.signOut()
+    fun handleGoogleLogin(
+        context: Context,
+        launcher: ManagedActivityResultLauncher<Intent, ActivityResult>?,
+        login: () -> Unit
+    ) {
+        googleSignInUtils.doGoogleSignIn(
+            context = context,
+            scope = viewModelScope,
+            launcher = launcher,
+            login = login
+        )
     }
 }
