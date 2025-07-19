@@ -9,7 +9,7 @@ BetterMux is an Android terminal application designed to provide a better comman
 ## Features
 
 - **Terminal Emulation**: Full-featured command-line interface
-- **Secure Authentication**: Firebase authentication with sign-in and sign-up capabilities
+- **Secure Authentication**: Google OAuth authentication with sign-in and sign-up capabilities
 - **Biometric Support**: Fingerprint authentication for enhanced security
 - **Modern UI**: Built with Jetpack Compose for a fluid, responsive interface
 - **Directory Navigation**: Visual file and directory browsing
