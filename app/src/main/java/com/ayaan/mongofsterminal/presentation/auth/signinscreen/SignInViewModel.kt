@@ -29,6 +29,8 @@ class SignInViewModel @Inject constructor(
     val password = mutableStateOf("")
     val isLoading = mutableStateOf(false)
     val errorMessage = mutableStateOf<String?>(null)
+    val resetPasswordMessage = mutableStateOf<String?>(null)
+    val isResetPasswordLoading = mutableStateOf(false)
 
     // Update methods
     fun onEmailChange(value: String) {
@@ -100,5 +102,41 @@ class SignInViewModel @Inject constructor(
             login = login,
             onError = onError
         )
+    }
+
+    // Forgot Password functionality
+    fun sendPasswordResetEmail(emailAddress: String? = null, onSuccess: () -> Unit = {}) {
+        viewModelScope.launch {
+            try {
+                isResetPasswordLoading.value = true
+                resetPasswordMessage.value = null
+                errorMessage.value = null
+
+                val resetEmail = emailAddress?.takeIf { it.isNotBlank() } ?: email.value
+
+                if (resetEmail.isEmpty()) {
+                    resetPasswordMessage.value = "Please enter your email address"
+                    isResetPasswordLoading.value = false
+                    return@launch
+                }
+
+                firebaseAuth.sendPasswordResetEmail(resetEmail.trim()).await()
+
+                resetPasswordMessage.value = "Password reset email sent to $resetEmail"
+                isResetPasswordLoading.value = false
+                onSuccess()
+
+            } catch (e: FirebaseAuthInvalidUserException) {
+                isResetPasswordLoading.value = false
+                resetPasswordMessage.value = "No account found with this email address"
+            } catch (e: Exception) {
+                isResetPasswordLoading.value = false
+                resetPasswordMessage.value = e.message ?: "Failed to send password reset email"
+            }
+        }
+    }
+
+    fun clearResetPasswordMessage() {
+        resetPasswordMessage.value = null
     }
 }

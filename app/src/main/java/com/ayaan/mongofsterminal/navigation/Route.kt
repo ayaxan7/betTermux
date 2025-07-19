@@ -6,4 +6,5 @@ sealed class Route(val route: String) {
     object FingerPrintScreen : Route("fingerprint_screen")
     object SignInScreen : Route("signin_screen")
     object SignUpScreen : Route("signup_screen")
+    object ForgotPasswordScreen : Route("forgot_password_screen")
 }
