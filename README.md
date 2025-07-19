@@ -64,11 +64,15 @@ A modern terminal emulator for Android with enhanced features and secure authent
     github_client_id=your_github_client_id
     github_client_secret=your_github_client_secret
 
-    speedchecker.username=<get this from speedchecker's official github repo>
-    speedchecker.password=<get this from speedchecker's official github repo>
     ```
 
-4. Sync Gradle and run the app on an emulator or device
+4. Set the required keys in your `gradle.properties` file:
+    ```properties
+    speedchecker.username=<get this from speedchecker's official github repo>
+    speedchecker.password=<get this from speedchecker's official github repo>
+    ```  
+
+5. Sync Gradle and run the app on an emulator or device
 
 ---
 
