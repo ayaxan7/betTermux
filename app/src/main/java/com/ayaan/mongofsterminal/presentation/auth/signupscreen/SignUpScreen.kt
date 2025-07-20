@@ -229,7 +229,42 @@ fun SignUpScreen(
                         }
                     }
                 )
-
+            }
+            if(username.isNotEmpty() && email.isNotEmpty() && password.isNotEmpty() && confirmPassword.isNotEmpty()) {
+                Button(
+                    onClick = {
+                        viewModel.signUp {
+                            navController.navigate(Route.TerminalScreen.route) {
+                                popUpTo(Route.SignUpScreen.route) { inclusive = true }
+                            }
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF2C5A2E),
+                        contentColor = Color.White
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp),
+                    enabled = !isLoading &&
+                            email.isNotEmpty() &&
+                            password.isNotEmpty() &&
+                            confirmPassword.isNotEmpty() &&
+                            username.isNotEmpty()
+                ) {
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            color = Color.White,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
+                    } else {
+                        Text(
+                            text = "REGISTER",
+                            fontFamily = FontFamily.Monospace,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
+                    }
+                }
             }
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -249,41 +284,7 @@ fun SignUpScreen(
                     navController = navController
                 )
             }
-            // Sign up button
-            Button(
-                onClick = {
-                    viewModel.signUp {
-                        navController.navigate(Route.TerminalScreen.route) {
-                            popUpTo(Route.SignUpScreen.route) { inclusive = true }
-                        }
-                    }
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF2C5A2E),
-                    contentColor = Color.White
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp),
-                enabled = !isLoading &&
-                         email.isNotEmpty() &&
-                         password.isNotEmpty() &&
-                         confirmPassword.isNotEmpty() &&
-                         username.isNotEmpty()
-            ) {
-                if (isLoading) {
-                    CircularProgressIndicator(
-                        color = Color.White,
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
-                } else {
-                    Text(
-                        text = "REGISTER",
-                        fontFamily = FontFamily.Monospace,
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
-                }
-            }
+
 
             // Login link
             Row(

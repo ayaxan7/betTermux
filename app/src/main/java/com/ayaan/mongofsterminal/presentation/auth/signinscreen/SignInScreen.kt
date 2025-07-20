@@ -197,39 +197,39 @@ fun SignInScreen(
                         .alpha(alpha)
                 )
             }
-
-            // Sign in button
-            Button(
-                onClick = {
-                    viewModel.signIn {
-                        navController.navigate(Route.TerminalScreen.route) {
-                            popUpTo(Route.SignInScreen.route) { inclusive = true }
+            if(email.isNotEmpty() && password.isNotEmpty() && errorMessage == null && resetPasswordMessage == null) {
+                // Sign in button
+                Button(
+                    onClick = {
+                        viewModel.signIn {
+                            navController.navigate(Route.TerminalScreen.route) {
+                                popUpTo(Route.SignInScreen.route) { inclusive = true }
+                            }
                         }
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF2C5A2E),
+                        contentColor = Color.White
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp),
+                    enabled = !isLoading && email.isNotEmpty() && password.isNotEmpty()
+                ) {
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            color = Color.White,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
+                    } else {
+                        Text(
+                            text = "LOGIN",
+                            fontFamily = FontFamily.Monospace,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
                     }
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF2C5A2E),
-                    contentColor = Color.White
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp),
-                enabled = !isLoading && email.isNotEmpty() && password.isNotEmpty()
-            ) {
-                if (isLoading) {
-                    CircularProgressIndicator(
-                        color = Color.White,
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
-                } else {
-                    Text(
-                        text = "LOGIN",
-                        fontFamily = FontFamily.Monospace,
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
                 }
             }
-
             // Forgot Password button
             TextButton(
                 onClick = {

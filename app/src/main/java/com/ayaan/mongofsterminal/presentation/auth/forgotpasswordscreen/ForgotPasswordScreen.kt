@@ -181,7 +181,7 @@ fun ForgotPasswordScreen(
                 )
                 Text(
                     text = resetPasswordMessage,
-                    color = if (resetPasswordMessage.contains("sent")) Color.Green else Color.Red,
+                    color = if (resetPasswordMessage.contains("sent", ignoreCase = true) || resetPasswordMessage.contains("success",ignoreCase = true)) Color.Green else Color.Red,
                     fontFamily = FontFamily.Monospace,
                     fontSize = 14.sp,
                     modifier = Modifier
@@ -189,38 +189,38 @@ fun ForgotPasswordScreen(
                         .alpha(alpha)
                 )
             }
-
-            // Send Reset Email button
-            Button(
-                onClick = {
-                    viewModel.sendPasswordResetEmail(localEmail) {
-                        // Optionally navigate back after successful email send
-                        // navController.navigateUp()
+            if(localEmail.isNotEmpty()){
+                // Send Reset Email button
+                Button(
+                    onClick = {
+                        viewModel.sendPasswordResetEmail(localEmail) {
+                            // Optionally navigate back after successful email send
+                            // navController.navigateUp()
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF2C5A2E),
+                        contentColor = Color.White
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp),
+                    enabled = !isResetPasswordLoading && localEmail.isNotEmpty()
+                ) {
+                    if (isResetPasswordLoading) {
+                        CircularProgressIndicator(
+                            color = Color.White,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
+                    } else {
+                        Text(
+                            text = "SEND RESET EMAIL",
+                            fontFamily = FontFamily.Monospace,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
                     }
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF2C5A2E),
-                    contentColor = Color.White
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp),
-                enabled = !isResetPasswordLoading && localEmail.isNotEmpty()
-            ) {
-                if (isResetPasswordLoading) {
-                    CircularProgressIndicator(
-                        color = Color.White,
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
-                } else {
-                    Text(
-                        text = "SEND RESET EMAIL",
-                        fontFamily = FontFamily.Monospace,
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
                 }
             }
-
             Spacer(modifier = Modifier.height(16.dp))
 
             // Back to Sign In link
