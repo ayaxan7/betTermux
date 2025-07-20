@@ -7,9 +7,9 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.ayaan.mongofsterminal.presentation.auth.forgotpasswordscreen.ForgotPasswordScreen
-import com.ayaan.mongofsterminal.presentation.auth.signinscreen.SignInScreen
-import com.ayaan.mongofsterminal.presentation.auth.signupscreen.SignUpScreen
+import com.ayaan.mongofsterminal.presentation.auth.screens.ForgotPasswordScreen
+import com.ayaan.mongofsterminal.presentation.auth.screens.SignInScreen
+import com.ayaan.mongofsterminal.presentation.auth.screens.SignUpScreen
 import com.ayaan.mongofsterminal.presentation.splashscreen.SplashScreen
 import com.ayaan.mongofsterminal.presentation.terminalscreen.TerminalScreen
 

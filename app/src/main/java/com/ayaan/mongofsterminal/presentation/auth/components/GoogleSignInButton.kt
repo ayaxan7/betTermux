@@ -31,15 +31,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.ayaan.mongofsterminal.R
 import com.ayaan.mongofsterminal.navigation.Route
-import com.ayaan.mongofsterminal.presentation.auth.signinscreen.SignInViewModel
-
+import com.ayaan.mongofsterminal.presentation.auth.viewmodel.AuthViewModel
 @Composable
 fun GoogleSignInButton(
     modifier: Modifier = Modifier,
     context: android.content.Context,
     launcher: ManagedActivityResultLauncher<Intent, ActivityResult>,
     navController: NavController,
-    viewModel: SignInViewModel= hiltViewModel()
+    viewModel: AuthViewModel= hiltViewModel()
 ) {
     val icon = painterResource(id = R.drawable.google_logo)
     OutlinedButton(
@@ -57,7 +56,7 @@ fun GoogleSignInButton(
                 }
             )
         },
-        modifier = Modifier
+        modifier = modifier
             .padding(16.dp)
             .fillMaxWidth(),
         border = BorderStroke(2.dp, Color(0xFF00FF00)), // neon green border
@@ -70,15 +69,15 @@ fun GoogleSignInButton(
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
-            modifier = Modifier.fillMaxWidth()
+            modifier = modifier.fillMaxWidth()
         ) {
-            Spacer(modifier= Modifier.width((-2).dp))
+            Spacer(modifier= modifier.width((-2).dp))
             Image(
                 painter = icon,
                 contentDescription = "Google logo",
-                modifier = Modifier.size(24.dp) // Adjust size as needed
+                modifier = modifier.size(24.dp) // Adjust size as needed
             )
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = modifier.width(8.dp))
             Text(
                 text = "CONTINUE WITH GOOGLE",
                 fontFamily = FontFamily.Monospace,

@@ -45,24 +45,24 @@ fun TerminalTextField(
             color = Color(0xFF4EB839), // Terminal green
             fontFamily = FontFamily.Monospace,
             fontSize = 14.sp,
-            modifier = Modifier.padding(bottom = 2.dp)
+            modifier = modifier.padding(bottom = 2.dp)
         )
 
         Box(
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxWidth()
                 .background(Color(0xFF1A1A1A), MaterialTheme.shapes.small)
                 .padding(4.dp)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
+                modifier = modifier.fillMaxWidth()
             ) {
                 Text(
                     text = "$prefix ",
                     color = Color(0xFF4EB839),
                     fontFamily = FontFamily.Monospace,
-                    modifier = Modifier.padding(end = 4.dp)
+                    modifier = modifier.padding(end = 4.dp)
                 )
 
                 TextField(
@@ -74,7 +74,7 @@ fun TerminalTextField(
                         fontSize = 16.sp,
                         color = Color.White
                     ),
-                    modifier = Modifier
+                    modifier = modifier
                         .fillMaxWidth()
                         .onFocusChanged { isFocused = it.isFocused },
                     colors = TextFieldDefaults.colors(

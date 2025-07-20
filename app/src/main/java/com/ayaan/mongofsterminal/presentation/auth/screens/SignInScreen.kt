@@ -1,4 +1,4 @@
-package com.ayaan.mongofsterminal.presentation.auth.signupscreen
+package com.ayaan.mongofsterminal.presentation.auth.screens
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -26,7 +26,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,36 +40,32 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.ayaan.mongofsterminal.navigation.Route
+import com.ayaan.mongofsterminal.presentation.auth.viewmodel.AuthViewModel
 import com.ayaan.mongofsterminal.presentation.auth.components.AuthScreenFooter
-import com.ayaan.mongofsterminal.presentation.auth.components.GitHubSignInButton
 import com.ayaan.mongofsterminal.presentation.auth.components.GoogleSignInButton
+import com.ayaan.mongofsterminal.presentation.auth.components.GitHubSignInButton
 import com.ayaan.mongofsterminal.presentation.auth.components.TerminalTextField
-import com.ayaan.mongofsterminal.presentation.auth.signinscreen.SignInViewModel
-import com.ayaan.mongofsterminal.utils.GoogleSignInUtils
 import kotlinx.coroutines.delay
 
 @Composable
-fun SignUpScreen(
+fun SignInScreen(
     navController: NavController,
-    viewModel: SignUpViewModel = hiltViewModel(),
-    loginViewModel: SignInViewModel=hiltViewModel()
+    viewModel: AuthViewModel = hiltViewModel()
 ) {
     // Access individual state properties directly
     val email = viewModel.email.value
     val password = viewModel.password.value
-    val confirmPassword = viewModel.confirmPassword.value
-    val username = viewModel.username.value
     val isLoading = viewModel.isLoading.value
     val errorMessage = viewModel.errorMessage.value
-
+    val resetPasswordMessage = viewModel.resetPasswordMessage.value
     val scrollState = rememberScrollState()
     var showCursor by remember { mutableStateOf(true) }
     var displayedText by remember { mutableStateOf("") }
     var isTyping by remember { mutableStateOf(true) }
     val texts = listOf(
         "/* Welcome to BetterMux Terminal */",
-        "/* Create a new account... */",
-        "/* Enter your credentials below */",
+        "/* Sign in to continue... */",
+        "/* Enter your credentials below*/",
     )
     var currentTextIndex by remember { mutableStateOf(0) }
 
@@ -110,6 +105,8 @@ fun SignUpScreen(
         }
     }
 
+    // Check if user is already signed in
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -124,44 +121,25 @@ fun SignUpScreen(
         ) {
             // Terminal header
             Text(
-                text = "┌─[ BetterMux Terminal ]─[ Registration ]",
+                text = "┌─[ BetterMux Terminal ]─[ Authentication ]",
                 color = Color(0xFF4EB839),
                 fontFamily = FontFamily.Monospace,
                 fontSize = 16.sp,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
-            // Animated text with cursor
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = displayedText,
-                    color = Color.Cyan,
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 16.sp
-                )
-                Text(
-                    text = if (showCursor) "_" else " ",
-                    color = Color.Cyan,
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 16.sp
-                )
-            }
+            Spacer(modifier = Modifier.height(16.dp))
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Username field
-            TerminalTextField(
-                value = username,
-                onValueChange = { viewModel.onUsernameChange(it) },
-                label = "username:",
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Text,
-                    imeAction = ImeAction.Next
-                ),
+            // Animated text
+            Text(
+                text = displayedText + if (showCursor) "_" else "",
+                color = Color.Cyan,
+                fontFamily = FontFamily.Monospace,
+                fontSize = 16.sp,
                 modifier = Modifier.padding(vertical = 8.dp)
             )
+
+            Spacer(modifier = Modifier.height(24.dp))
 
             // Email field
             TerminalTextField(
@@ -180,19 +158,6 @@ fun SignUpScreen(
                 value = password,
                 onValueChange = { viewModel.onPasswordChange(it) },
                 label = "password:",
-                isPassword = true,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Password,
-                    imeAction = ImeAction.Next
-                ),
-                modifier = Modifier.padding(vertical = 8.dp)
-            )
-
-            // Confirm Password field
-            TerminalTextField(
-                value = confirmPassword,
-                onValueChange = { viewModel.onConfirmPasswordChange(it) },
-                label = "confirm_password:",
                 isPassword = true,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Password,
@@ -217,25 +182,28 @@ fun SignUpScreen(
                         .alpha(alpha)
                 )
             }
-            val context= LocalContext.current
 
-            val launcher = rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) {
-                loginViewModel.handleGoogleLogin(
-                    context = context,
-                    launcher = null,
-                    login = {
-                        navController.navigate(Route.TerminalScreen.route) {
-                            popUpTo(Route.SignInScreen.route) { inclusive = true }
-                        }
-                    }
+            // Reset password message
+            if (resetPasswordMessage != null) {
+                val alpha by animateFloatAsState(targetValue = if (resetPasswordMessage != null) 1f else 0f,
+                    label = "resetAlpha")
+                Text(
+                    text = resetPasswordMessage,
+                    color = if (resetPasswordMessage.contains("sent")) Color.Green else Color.Red,
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 14.sp,
+                    modifier = Modifier
+                        .padding(vertical = 8.dp)
+                        .alpha(alpha)
                 )
             }
-            if(username.isNotEmpty() && email.isNotEmpty() && password.isNotEmpty() && confirmPassword.isNotEmpty()) {
+            if(email.isNotEmpty() && password.isNotEmpty() && errorMessage == null && resetPasswordMessage == null) {
+                // Sign in button
                 Button(
                     onClick = {
-                        viewModel.signUp {
+                        viewModel.signIn {
                             navController.navigate(Route.TerminalScreen.route) {
-                                popUpTo(Route.SignUpScreen.route) { inclusive = true }
+                                popUpTo(Route.SignInScreen.route) { inclusive = true }
                             }
                         }
                     },
@@ -246,11 +214,7 @@ fun SignUpScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 16.dp),
-                    enabled = !isLoading &&
-                            email.isNotEmpty() &&
-                            password.isNotEmpty() &&
-                            confirmPassword.isNotEmpty() &&
-                            username.isNotEmpty()
+                    enabled = !isLoading && email.isNotEmpty() && password.isNotEmpty()
                 ) {
                     if (isLoading) {
                         CircularProgressIndicator(
@@ -259,12 +223,41 @@ fun SignUpScreen(
                         )
                     } else {
                         Text(
-                            text = "REGISTER",
+                            text = "LOGIN",
                             fontFamily = FontFamily.Monospace,
                             modifier = Modifier.padding(vertical = 8.dp)
                         )
                     }
                 }
+            }
+            // Forgot Password button
+            TextButton(
+                onClick = {
+                    viewModel.clearResetPasswordMessage()
+                    navController.navigate(Route.ForgotPasswordScreen.route)
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = "Forgot Password?",
+                    color = Color(0xFF4EB839),
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 14.sp
+                )
+            }
+
+            val context= LocalContext.current
+            val launcher = rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) {
+                viewModel.handleGoogleLogin(
+                    context = context,
+                    launcher = null,
+                    login = {
+                        navController.navigate(Route.TerminalScreen.route) {
+                            popUpTo(Route.SignInScreen.route) { inclusive = true }
+                        }
+                    }
+                )
+
             }
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -284,23 +277,19 @@ fun SignUpScreen(
                     navController = navController
                 )
             }
-
-
-            // Login link
+            // Register link
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "Already have an account? ",
+                    text = "New user? ",
                     color = Color.Gray,
                     fontFamily = FontFamily.Monospace
                 )
-                TextButton(onClick = { navController.navigate(Route.SignInScreen.route){
-                    popUpTo(Route.SignUpScreen.route){ inclusive = true}
-                } }) {
+                TextButton(onClick = { navController.navigate(Route.SignUpScreen.route) }) {
                     Text(
-                        text = "Sign in",
+                        text = "Create account",
                         color = Color(0xFF4EB839),
                         fontFamily = FontFamily.Monospace
                     )
@@ -310,6 +299,7 @@ fun SignUpScreen(
             // Terminal footer
             Spacer(modifier = Modifier.weight(1f))
             AuthScreenFooter()
+
         }
     }
 }

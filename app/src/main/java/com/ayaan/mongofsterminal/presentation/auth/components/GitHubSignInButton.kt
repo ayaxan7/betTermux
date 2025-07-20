@@ -28,14 +28,16 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.ayaan.mongofsterminal.R
 import com.ayaan.mongofsterminal.navigation.Route
-import com.ayaan.mongofsterminal.presentation.auth.signinscreen.SignInViewModel
+import com.ayaan.mongofsterminal.presentation.auth.viewmodel.AuthViewModel
+
+//import com.ayaan.mongofsterminal.presentation.auth.signinscreen.SignInViewModel
 
 @Composable
 fun GitHubSignInButton(
     modifier: Modifier = Modifier,
     context: android.content.Context,
     navController: NavController,
-    viewModel: SignInViewModel = hiltViewModel()
+    viewModel: AuthViewModel = hiltViewModel()
 ) {
     val icon = painterResource(id = R.drawable.github_logo) // Using the GitHub logo
 
@@ -56,7 +58,7 @@ fun GitHubSignInButton(
                 }
             )
         },
-        modifier = Modifier
+        modifier = modifier
             .padding(16.dp)
             .fillMaxWidth(),
         border = BorderStroke(2.dp, Color(0xFF6e5494)), // GitHub purple border
@@ -69,15 +71,15 @@ fun GitHubSignInButton(
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
-            modifier = Modifier.fillMaxWidth()
+            modifier = modifier.fillMaxWidth()
         ) {
-            Spacer(modifier = Modifier.width((-2).dp))
+            Spacer(modifier = modifier.width((-2).dp))
             Image(
                 painter = icon,
                 contentDescription = "GitHub logo",
-                modifier = Modifier.size(24.dp)
+                modifier = modifier.size(24.dp)
             )
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = modifier.width(8.dp))
             Text(
                 text = "CONTINUE WITH GITHUB",
                 fontFamily = FontFamily.Monospace,

@@ -1,4 +1,4 @@
-package com.ayaan.mongofsterminal.presentation.auth.forgotpasswordscreen
+package com.ayaan.mongofsterminal.presentation.auth.screens
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
@@ -37,15 +37,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.ayaan.mongofsterminal.presentation.auth.viewmodel.AuthViewModel
 import com.ayaan.mongofsterminal.presentation.auth.components.AuthScreenFooter
 import com.ayaan.mongofsterminal.presentation.auth.components.TerminalTextField
-import com.ayaan.mongofsterminal.presentation.auth.signinscreen.SignInViewModel
 import kotlinx.coroutines.delay
 
 @Composable
 fun ForgotPasswordScreen(
     navController: NavController,
-    viewModel: SignInViewModel = hiltViewModel()
+    viewModel: AuthViewModel = hiltViewModel()
 ) {
     // State for local email input
     var localEmail by remember { mutableStateOf("") }
@@ -194,7 +194,6 @@ fun ForgotPasswordScreen(
                 Button(
                     onClick = {
                         viewModel.sendPasswordResetEmail(localEmail) {
-                            // Optionally navigate back after successful email send
                             // navController.navigateUp()
                         }
                     },
