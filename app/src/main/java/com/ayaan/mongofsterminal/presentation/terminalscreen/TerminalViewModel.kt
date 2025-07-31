@@ -103,6 +103,21 @@ class TerminalViewModel @Inject constructor(
         if (tokens.isEmpty()) return TerminalEntry.Output("", TerminalOutputType.Normal)
         return try {
             when (tokens[0]) {
+                "upload" -> {
+                    val targetFilename = tokens.getOrNull(1)
+                    if (targetFilename != null) {
+                        uploadTargetFilename = targetFilename
+                    }
+
+                    // Launch file picker
+                    filePickerLauncher.launch("*/*")
+
+                    // Return a message indicating upload process has started
+                    TerminalEntry.Output("Opening file picker... Select a file to upload" +
+                        (if (targetFilename != null) " as '$targetFilename'" else ""),
+                        TerminalOutputType.Normal)
+                }
+
                 "ls" -> {
                     val req = FileSystemRequest(
                         action = "getChildren",
@@ -644,20 +659,6 @@ class TerminalViewModel @Inject constructor(
                     }
                 }
 
-                "upload" -> {
-                    // Check if filename parameter was provided
-                    val filename = tokens.getOrNull(1)
-                    if (filename == null) {
-                        return TerminalEntry.Output("Usage: upload <filename>", TerminalOutputType.Error)
-                    }
-
-                    // Store the target filename to use when file is selected
-                    uploadTargetFilename = filename
-
-                    // Launch the file picker to select a file for upload
-                    filePickerLauncher.launch("*/*")
-                    return TerminalEntry.Output("→ Waiting for file selection...", TerminalOutputType.Normal)
-                }
 
                 // Add more commands as needed
                 else -> TerminalEntry.Output("Unknown command: ${tokens[0]}", TerminalOutputType.Error)

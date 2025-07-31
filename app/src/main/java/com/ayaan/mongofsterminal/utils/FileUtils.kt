@@ -57,6 +57,48 @@ object FileUtils {
     }
 
     /**
+     * Gets a human-readable file size string from a URI
+     */
+    fun getReadableFileSize(context: Context, uri: Uri): String {
+        var fileSize: Long = 0
+
+        // Try to get the size from the content provider
+        context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                val sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE)
+                if (sizeIndex != -1) {
+                    fileSize = cursor.getLong(sizeIndex)
+                }
+            }
+        }
+
+        // If we couldn't get the size from the content provider, try to read the content
+        if (fileSize == 0L) {
+            try {
+                context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                    fileSize = inputStream.available().toLong()
+                }
+            } catch (e: Exception) {
+                Log.e("FileUtils", "Error getting file size", e)
+            }
+        }
+
+        return formatFileSize(fileSize)
+    }
+
+    /**
+     * Formats a file size in bytes to a human-readable string
+     */
+    private fun formatFileSize(sizeBytes: Long): String {
+        if (sizeBytes <= 0) return "0 B"
+
+        val units = arrayOf("B", "KB", "MB", "GB", "TB")
+        val digitGroups = (Math.log10(sizeBytes.toDouble()) / Math.log10(1024.0)).toInt()
+
+        return String.format("%.1f %s", sizeBytes / Math.pow(1024.0, digitGroups.toDouble()), units[digitGroups])
+    }
+
+    /**
      * Converts file content to string or base64 depending on the MIME type
      * @return A pair containing the content string and a boolean indicating if it's base64 encoded
      */
@@ -104,23 +146,6 @@ object FileUtils {
                mimeType == "application/xml" ||
                mimeType == "application/javascript" ||
                mimeType == "application/typescript"
-    }
-
-    /**
-     * Gets the file size in a human-readable format
-     */
-    fun getReadableFileSize(context: Context, uri: Uri): String {
-        val size = getFileSize(context, uri)
-        val units = arrayOf("B", "KB", "MB", "GB", "TB")
-        var sizeValue = size.toDouble()
-        var unitIndex = 0
-
-        while (sizeValue >= 1024 && unitIndex < units.size - 1) {
-            sizeValue /= 1024
-            unitIndex++
-        }
-
-        return String.format("%.1f %s", sizeValue, units[unitIndex])
     }
 
     /**
