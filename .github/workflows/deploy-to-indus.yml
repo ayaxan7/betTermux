@@ -1,6 +1,6 @@
 name: Deploy to Indus App Store
 
-# Trigger the workflow on push to main branch
+# Trigger the workflow on push to master branch
 on:
   push:
     branches: [ master ]
@@ -60,6 +60,7 @@ jobs:
         echo "kotlin.incremental=true" >> gradle.properties
         echo "android.nonTransitiveRClass=true" >> gradle.properties
         echo "android.enableR8.fullMode=true" >> gradle.properties
+        echo "org.gradle.java.home=$JAVA_HOME" >> gradle.properties
         # echo "speedchecker.username=${{ secrets.SPEEDCHECKER_USERNAME }}" >> gradle.properties
         # echo "speedchecker.password=${{ secrets.SPEEDCHECKER_PASSWORD }}" >> gradle.properties
     
