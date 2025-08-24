@@ -97,7 +97,7 @@ jobs:
     # Deploy to Indus App Store
     - name: Upload to Indus App Store
       id: upload-indus-app-store
-      uses: yogeshpaliyal/upload-indus-appstore@v1.0.5
+      uses: yogeshpaliyal/upload-indus-appstore@v0.0.6
       with:
         type: "UPLOAD_AAB"
         apiKey: ${{ secrets.INDUS_API_KEY }}
@@ -123,5 +123,5 @@ jobs:
     - name: Cleanup
       if: always()
       run: |
-        rm -f bettermux.jks
+        rm -f keystore.jks
         rm -f local.properties
