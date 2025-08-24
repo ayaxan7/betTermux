@@ -18,8 +18,8 @@ val localProperties = Properties().apply {
 }
 val geminiApiKey = localProperties.getProperty("GEMINI_API_KEY") ?: "MISSING_API_KEY"
 val oauthClientId= localProperties.getProperty("oauth_client_id") ?: "MISSING_OAUTH_CLIENT_ID"
-val githubClientId= localProperties.getProperty("github_client_id") ?: "MISSING_GITHUB_CLIENT_ID"
-val githubCLientSecret= localProperties.getProperty("github_client_secret") ?: "MISSING_GITHUB_CLIENT_SECRET"
+val githubClientId= localProperties.getProperty("auth_github_client_id") ?: "MISSING_GITHUB_CLIENT_ID"
+val githubCLientSecret= localProperties.getProperty("auth_github_client_secret") ?: "MISSING_GITHUB_CLIENT_SECRET"
 android {
     namespace = "com.ayaan.mongofsterminal"
     compileSdk = 35
