@@ -61,8 +61,8 @@ jobs:
         echo "android.nonTransitiveRClass=true" >> gradle.properties
         echo "android.enableR8.fullMode=true" >> gradle.properties
         echo "org.gradle.java.home=$JAVA_HOME" >> gradle.properties
-        # echo "speedchecker.username=${{ secrets.SPEEDCHECKER_USERNAME }}" >> gradle.properties
-        # echo "speedchecker.password=${{ secrets.SPEEDCHECKER_PASSWORD }}" >> gradle.properties
+        echo "speedchecker.username=demo" >> gradle.properties
+        echo "speedchecker.password=AP85qiz6wYEsCttWU2ZckEWSwJKuA6mSYcizEY" >> gradle.properties
     
     # Decode and create keystore file
     - name: Create keystore
