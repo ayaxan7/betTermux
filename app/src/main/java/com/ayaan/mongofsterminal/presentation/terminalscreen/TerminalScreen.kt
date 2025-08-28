@@ -55,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.ayaan.mongofsterminal.navigation.Route
 import com.ayaan.mongofsterminal.presentation.terminalscreen.components.DirectoryEntryLine
 import com.ayaan.mongofsterminal.presentation.terminalscreen.components.DisplayImageFromBase64
@@ -67,7 +68,7 @@ import com.speedchecker.android.sdk.SpeedcheckerSDK
 
 @Composable
 fun TerminalScreen(
-    navController: NavController, viewModel: TerminalViewModel = hiltViewModel()
+    navController: NavController = rememberNavController(), viewModel: TerminalViewModel = hiltViewModel()
 ) {
     val isLoggedOut by viewModel.isLoggedOut
     val isAccountDeleted by viewModel.isAccountDeleted

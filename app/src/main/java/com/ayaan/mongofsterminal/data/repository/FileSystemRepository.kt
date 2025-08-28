@@ -20,12 +20,12 @@ class FileSystemRepository @Inject constructor(
     private val fileSystemApi: FileSystemApi,
     private val firebaseAuth: FirebaseAuth
 ) {
-    /**
-     * Performs a file system action with automatic UID injection and auth checks
-     * @param request The file system request without UID
-     * @return FileSystemResponse from the API
-     * @throws IllegalStateException if user is not authenticated
-     */
+//    /**
+//     * Performs a file system action with automatic UID injection and auth checks
+//     * @param request The file system request without UID
+//     * @return FileSystemResponse from the API
+//     * @throws IllegalStateException if user is not authenticated
+//     */
     suspend fun performAction(request: FileSystemRequest): FileSystemResponse {
         val currentUser = firebaseAuth.currentUser
             ?: throw IllegalStateException("User not authenticated. Please login first.")
@@ -121,19 +121,5 @@ class FileSystemRepository @Inject constructor(
         if (request.uid != null) payload["userId"] = request.uid
         return payload
     }
-
-    /**
-     * Checks if the user is authenticated
-     * @return true if user is authenticated, false otherwise
-     */
-    fun isUserAuthenticated(): Boolean {
-        return firebaseAuth.currentUser != null
-    }
-
-    /**
-     * Gets the current user's UID or null if not authenticated
-     */
-    fun getCurrentUserUid(): String? {
-        return firebaseAuth.currentUser?.uid
-    }
 }
+
